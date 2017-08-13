@@ -2,14 +2,18 @@ pragma solidity ^0.4.11;
 
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 import './KyberContirbutorWhitelist.sol';
+import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 
 contract ContributorApprover {
     KyberContirbutorWhitelist public list;
-    mapping(address=>bool)    public participated;
+    mapping(address=>uint)    public participated;
     
     uint                      public cappedSaleStartTime;
     uint                      public openSaleStartTime;
     uint                      public openSaleEndTime;
+    
+    using SafeMath for uint;
+
     
     function ContributorApprover( KyberContirbutorWhitelist _whitelistContract,
                                   uint                      _cappedSaleStartTime,
@@ -30,24 +34,24 @@ contract ContributorApprover {
         return list.getCap( contributor );
     }
     
-    function eligible( address contributor, uint amountInWei ) constant returns(bool) {
-        if( now < cappedSaleStartTime ) return false;
-        if( now > openSaleEndTime ) return false;
+    function eligible( address contributor, uint amountInWei ) constant returns(uint) {
+        if( now < cappedSaleStartTime ) return 0;
+        if( now > openSaleEndTime ) return 0;
     
         uint cap = contributorCap( contributor );
         
-        if( cap == 0 ) return false;
+        if( cap == 0 ) return 0;
         if( now < openSaleStartTime ) {
-            if( participated[ contributor ] ) return false;
-            if( cap < amountInWei ) return false;
+            return amountInWei.sub( participated[ contributor ] );
         }
-
-        return true;    
+        else {
+            return amountInWei;
+        }
     }
     
-    function isEligibleTestAndSet( address contributor, uint amountInWei ) internal returns(bool) {
-        bool result = eligible( contributor, amountInWei );
-        participated[contributor] = true;
+    function eligibleTestAndIncrement( address contributor, uint amountInWei ) internal returns(uint) {
+        uint result = eligible( contributor, amountInWei );
+        participated[contributor] = participated[contributor].add( result );
         
         return result;
     }

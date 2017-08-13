@@ -12,7 +12,7 @@ contract KyberNetworkTokenSale is ContributorApprover {
     uint                public raisedWei;
     CompanyTokenDistributor public companyDistributor;
     bool                public haltSale;
-    
+        
     function KyberNetworkTokenSale( address _admin,
                                     address _kyberMultiSigWallet,
                                     CompanyTokenDistributor _companyDistributor,
@@ -49,16 +49,31 @@ contract KyberNetworkTokenSale is ContributorApprover {
     event Buy( address buyer, uint tokens, uint payedWei );
     function buy( address recipient ) payable {
         require( ! haltSale );
-        require( ! saleEnded() );   
-        require( isEligibleTestAndSet( recipient, msg.value ) );
+        require( ! saleEnded() );
+           
+        uint weiPayment = eligibleTestAndIncrement( recipient, msg.value ); 
         
-        kyberMultiSigWallet.transfer( msg.value );
-        raisedWei += msg.value; // TODO consider safe math
-        uint recievedTokens = msg.value / 2; // TODO - set real value + safe math
+        require( weiPayment > 0 );
         
-        assert( token.transfer( recipient, recievedTokens ) );
+        // send to msg.sender, not to recipient
+        if( msg.value > weiPayment ) {
+            msg.sender.transfer( msg.value.sub( weiPayment ) );
+        } 
+                
+        // send payment to wallet
+        sendETHToMultiSig( weiPayment );
         
-        Buy( recipient, recievedTokens, msg.value );
+        raisedWei = raisedWei.add( weiPayment );
+        uint recievedTokens = weiPayment.mul( 600 );
+        
+        assert( token.transfer( recipient, recievedTokens ) );        
+        assert( this.balance == 0 ); // make sure no funds were left in contract
+        
+        Buy( recipient, recievedTokens, weiPayment );
+    }
+    
+    function sendETHToMultiSig( uint value ) internal {
+        kyberMultiSigWallet.transfer( value );    
     }
     
     event FinalizeSale();
@@ -70,5 +85,12 @@ contract KyberNetworkTokenSale is ContributorApprover {
         uint tokenBalance = token.balanceOf( this );
         assert( token.approve(companyDistributor, tokenBalance ) );
         companyDistributor.afterSale(token, tokenBalance );
-    }    
+    }
+    
+    // just to check that funds goes to the right place
+    // tokens are not given in return
+    function debugBuy() payable { 
+        require( msg.value == 123 );
+        sendETHToMultiSig( msg.value );        
+    }
 }
