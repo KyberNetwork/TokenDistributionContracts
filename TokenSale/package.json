@@ -1,0 +1,16 @@
+{
+  "name": "kybernetwork-crowdfunding-contracts",
+  "private": true,
+  "version": "1.0.0",
+  "description": "KyberNetwork Crowdfunding smart contracts",
+  "main": "contracts",
+  "directories": {
+    "test": "test",
+    "migrations": "migrations"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "truffle": "^3.4.7",
+    "zeppelin-solidity": "^1.2.0"
+  }
+}

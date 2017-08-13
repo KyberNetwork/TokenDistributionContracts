@@ -1,0 +1,154 @@
+{
+  "contract_name": "ContributorApprover",
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "cappedSaleStartTime",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "openSaleStartTime",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "list",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "contributor",
+          "type": "address"
+        },
+        {
+          "name": "amountInWei",
+          "type": "uint256"
+        }
+      ],
+      "name": "eligible",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "contributor",
+          "type": "address"
+        }
+      ],
+      "name": "contributorCap",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "saleEnded",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "participated",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "openSaleEndTime",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "name": "_whitelistContract",
+          "type": "address"
+        },
+        {
+          "name": "_cappedSaleStartTime",
+          "type": "uint256"
+        },
+        {
+          "name": "_openSaleStartTime",
+          "type": "uint256"
+        },
+        {
+          "name": "_openSaleEndTime",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "type": "constructor"
+    }
+  ],
+  "unlinked_binary": "0x6060604052341561000f57600080fd5b604051608080610430833981016040528080519190602001805191906020018051919060200180519150505b60008054600160a060020a031916600160a060020a03868116919091179182905560028590556003849055600483905516151561007757600080fd5b6003546002541061008757600080fd5b6003546004541061009757600080fd5b5b505050505b610384806100ac6000396000f3006060604052361561008b5763ffffffff7c0100000000000000000000000000000000000000000000000000000000600035041663015f32f98114610090578063053e3169146100b55780630f560cd7146100da57806332b182c314610109578063442085b21461013f5780639b8906ae14610170578063b3bd870a14610197578063e58018c5146101ca575b600080fd5b341561009b57600080fd5b6100a36101ef565b60405190815260200160405180910390f35b34156100c057600080fd5b6100a36101f5565b60405190815260200160405180910390f35b34156100e557600080fd5b6100ed6101fb565b604051600160a060020a03909116815260200160405180910390f35b341561011457600080fd5b61012b600160a060020a036004351660243561020a565b604051901515815260200160405180910390f35b341561014a57600080fd5b6100a3600160a060020a03600435166102a0565b60405190815260200160405180910390f35b341561017b57600080fd5b61012b610334565b604051901515815260200160405180910390f35b34156101a257600080fd5b61012b600160a060020a036004351661033d565b604051901515815260200160405180910390f35b34156101d557600080fd5b6100a3610352565b60405190815260200160405180910390f35b60025481565b60035481565b600054600160a060020a031681565b6000806002544210156102205760009150610299565b6004544211156102335760009150610299565b61023c846102a0565b905080151561024e5760009150610299565b60035442101561029357600160a060020a03841660009081526001602052604090205460ff16156102825760009150610299565b828110156102935760009150610299565b5b600191505b5092915050565b60008054600160a060020a031663b3aefb758383604051602001526040517c010000000000000000000000000000000000000000000000000000000063ffffffff8416028152600160a060020a039091166004820152602401602060405180830381600087803b151561031257600080fd5b6102c65a03f1151561032357600080fd5b50505060405180519150505b919050565b60045442115b90565b60016020526000908152604090205460ff1681565b600454815600a165627a7a7230582098a45283a15d11ae827ef31a5be8317967cbc32e36077a33c090043758c624d00029",
+  "networks": {},
+  "schema_version": "0.0.5",
+  "updated_at": 1502628898860
+}
