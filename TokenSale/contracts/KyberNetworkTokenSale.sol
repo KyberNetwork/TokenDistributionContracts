@@ -29,7 +29,8 @@ contract KyberNetworkTokenSale is ContributorApprover {
     {
         admin = _admin;
         kyberMultiSigWallet = _kyberMultiSigWallet;
-        companyDistributor = _companyDistributor;                          
+        companyDistributor = _companyDistributor;
+                                  
         token = new KyberNetworkCrystal( _totalTokenSupply, _cappedSaleStartTime, _publicSaleEndTime, _admin );
         
         uint companyTokenAmount = token.totalSupply() / 2; // TODO - change

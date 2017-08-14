@@ -1,0 +1,183 @@
+{
+  "contract_name": "Approver",
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "cappedSaleStartTime",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "openSaleStartTime",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "list",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "contributor",
+          "type": "address"
+        },
+        {
+          "name": "amountInWei",
+          "type": "uint256"
+        }
+      ],
+      "name": "eligible",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "contributor",
+          "type": "address"
+        },
+        {
+          "name": "amountInWei",
+          "type": "uint256"
+        }
+      ],
+      "name": "testAndIncrement",
+      "outputs": [],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "contributor",
+          "type": "address"
+        }
+      ],
+      "name": "contributorCap",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "saleEnded",
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "participated",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "openSaleEndTime",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "name": "_whilteListContract",
+          "type": "address"
+        },
+        {
+          "name": "_cappedSaleStartTime",
+          "type": "uint256"
+        },
+        {
+          "name": "_publicSaleStartTime",
+          "type": "uint256"
+        },
+        {
+          "name": "_publicSaleEndTime",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "x",
+          "type": "uint256"
+        }
+      ],
+      "name": "Result",
+      "type": "event"
+    }
+  ],
+  "unlinked_binary": "0x6060604052341561000f57600080fd5b604051608080610541833981016040528080519190602001805191906020018051919060200180519150505b838383835b60008054600160a060020a031916600160a060020a03868116919091179182905560028590556003849055600483905516151561007c57600080fd5b6003546002541061008c57600080fd5b6004546003541061009c57600080fd5b5b505050505b505050505b61048b806100b66000396000f300606060405236156100965763ffffffff7c0100000000000000000000000000000000000000000000000000000000600035041663015f32f9811461009b578063053e3169146100c05780630f560cd7146100e557806332b182c314610114578063363d6d8d14610148578063442085b21461016c5780639b8906ae1461019d578063b3bd870a146101c4578063e58018c5146101f5575b600080fd5b34156100a657600080fd5b6100ae61021a565b60405190815260200160405180910390f35b34156100cb57600080fd5b6100ae610220565b60405190815260200160405180910390f35b34156100f057600080fd5b6100f8610226565b604051600160a060020a03909116815260200160405180910390f35b341561011f57600080fd5b6100ae600160a060020a0360043516602435610235565b60405190815260200160405180910390f35b341561015357600080fd5b61016a600160a060020a03600435166024356102db565b005b341561017757600080fd5b6100ae600160a060020a036004351661031c565b60405190815260200160405180910390f35b34156101a857600080fd5b6101b06103b0565b604051901515815260200160405180910390f35b34156101cf57600080fd5b6100ae600160a060020a03600435166103b9565b60405190815260200160405180910390f35b341561020057600080fd5b6100ae6103cb565b60405190815260200160405180910390f35b60025481565b60035481565b600054600160a060020a031681565b600080600060025442101561024d57600092506102d2565b60045442111561026057600092506102d2565b6102698561031c565b915081151561027b57600092506102d2565b6003544210156102ce57600160a060020a0385166000908152600160205260409020546102af90839063ffffffff6103d116565b9050838111156102c1578392506102d2565b8092506102d2565b6102d2565b8392505b5b505092915050565b7fa9bb0fa194e939eadb11be8d62dd4a16e0f5e89f37fb73fa7f0f8446f1abba6161030683836103e8565b60405190815260200160405180910390a15b5050565b60008054600160a060020a031663b3aefb758383604051602001526040517c010000000000000000000000000000000000000000000000000000000063ffffffff8416028152600160a060020a039091166004820152602401602060405180830381600087803b151561038e57600080fd5b6102c65a03f1151561039f57600080fd5b50505060405180519150505b919050565b60045442115b90565b60016020526000908152604090205481565b60045481565b6000828211156103dd57fe5b508082035b92915050565b6000806103f58484610235565b600160a060020a038516600090815260016020526040902054909150610421908263ffffffff61044516565b600160a060020a0385166000908152600160205260409020559050805b5092915050565b60008282018381101561045457fe5b8091505b50929150505600a165627a7a7230582086c62818e8af59c39731db532df4dc45a1821f829b65b0dc760b3d492b98315f0029",
+  "networks": {},
+  "schema_version": "0.0.5",
+  "updated_at": 1502711628643
+}

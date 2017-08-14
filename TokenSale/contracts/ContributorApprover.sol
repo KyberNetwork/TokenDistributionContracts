@@ -26,7 +26,7 @@ contract ContributorApprover {
         
         require( list != KyberContirbutorWhitelist(0x0) );
         require( cappedSaleStartTime < openSaleStartTime );
-        require( openSaleEndTime < openSaleStartTime );
+        require(  openSaleStartTime < openSaleEndTime );
     }
 
     // this is a seperate function so user could query it before crowdsale starts
@@ -37,12 +37,15 @@ contract ContributorApprover {
     function eligible( address contributor, uint amountInWei ) constant returns(uint) {
         if( now < cappedSaleStartTime ) return 0;
         if( now > openSaleEndTime ) return 0;
-    
+
         uint cap = contributorCap( contributor );
         
         if( cap == 0 ) return 0;
         if( now < openSaleStartTime ) {
-            return amountInWei.sub( participated[ contributor ] );
+            uint remainedCap = cap.sub( participated[ contributor ] );
+            
+            if( remainedCap > amountInWei ) return amountInWei;
+            else return remainedCap;
         }
         else {
             return amountInWei;
