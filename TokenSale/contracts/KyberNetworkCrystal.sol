@@ -3,7 +3,9 @@ pragma solidity ^0.4.11;
 import 'zeppelin-solidity/contracts/token/MintableToken.sol';
 import 'zeppelin-solidity/contracts/ownership/HasNoTokens.sol';
 
-
+// zepplin standard token has two miner issues:
+// 1) Events are a bit different from ERC20 wiki. In particular, _ is missing in the names
+// 2) transferFrom to self could succeed even if balance is insufficient. 
 
 contract KyberNetworkCrystal is MintableToken {
     string  public  constant name = "Kyber Network Crystal";
@@ -33,7 +35,7 @@ contract KyberNetworkCrystal is MintableToken {
         tokenSaleContract = msg.sender;
         transferOwnership(admin); // admin could drain tokens that were sent here by mistake
     }
-
+    
     function transfer(address _to, uint _value) onlyWhenTransferEnabled returns (bool) {
         return super.transfer(_to, _value);
     }

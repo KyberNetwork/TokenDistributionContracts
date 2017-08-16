@@ -186,6 +186,9 @@ contract('contributor approver', function(accounts) {
     done();
   });
 
+  it("mine one block to get current time", function() {
+    return Helpers.sendPromise( 'evm_mine', [] );
+  });
   
   it("deploy white list", function() {
     return WhiteList.new({from:accounts[2],gas:4000000}).then(function(instance){
@@ -201,7 +204,7 @@ contract('contributor approver', function(accounts) {
   });
   
   it("deploy token sale contract", function() {
-    var currentTime = Math.floor( Date.now() / 1000 );
+    var currentTime = web3.eth.getBlock('latest').timestamp;
   
     cappedSaleStartTime = currentTime + 3600; // one hour from now
     publicSaleStartTime = cappedSaleStartTime  + 3 * 3600; 
