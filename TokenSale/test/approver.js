@@ -429,4 +429,5 @@ contract('contributor approver', function(accounts) {
     return testEligbleInIterations( mockApproverContract, accounts, false, false, stressTestParam );
   });
         
+  // TODO - try to call testAndIncerement directly (and fail)
 });

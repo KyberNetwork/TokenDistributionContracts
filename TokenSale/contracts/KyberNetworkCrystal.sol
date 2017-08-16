@@ -1,39 +1,11 @@
 pragma solidity ^0.4.11;
 
-//import 'zeppelin-solidity/contracts/token/BurnableToken.sol';
 import 'zeppelin-solidity/contracts/token/MintableToken.sol';
 import 'zeppelin-solidity/contracts/ownership/HasNoTokens.sol';
 
 
 
-
-// TODO - check is already released in next solidity version
-/**
- * @title Burnable Token
- * @dev Token that can be irreversibly burned (destroyed).
- */
-contract BurnableToken is StandardToken {
-
-    /**
-     * @dev Burns a specific amount of tokens.
-     * @param _value The amount of token to be burned.
-     */
-    function burn(uint _value)
-        public
-    {
-        require(_value > 0);
-
-        address burner = msg.sender;
-        balances[burner] = balances[burner].sub(_value);
-        totalSupply = totalSupply.sub(_value);
-        Burn(burner, _value);
-    }
-
-    event Burn(address indexed burner, uint indexed value);
-}
-
-
-contract KyberNetworkCrystal is BurnableToken, MintableToken, HasNoTokens {
+contract KyberNetworkCrystal is MintableToken {
     string  public  constant name = "Kyber Network Crystal";
     string  public  constant symbol = "KNC";
     uint    public  constant decimals = 18;
@@ -61,6 +33,22 @@ contract KyberNetworkCrystal is BurnableToken, MintableToken, HasNoTokens {
         tokenSaleContract = msg.sender;
         transferOwnership(admin); // admin could drain tokens that were sent here by mistake
     }
+
+    function transfer(address _to, uint _value) onlyWhenTransferEnabled returns (bool) {
+        return super.transfer(_to, _value);
+    }
+
+    function transferFrom(address _from, address _to, uint _value) onlyWhenTransferEnabled returns (bool) {
+        return super.transferFrom(_from, _to, _value);
+    }
+    
+    event Burn(address indexed burner, uint value);
+    
+    function burn(uint _value) onlyWhenTransferEnabled{
+        balances[msg.sender] = balances[msg.sender].sub(_value);
+        totalSupply = totalSupply.sub(_value);
+        Burn(msg.sender, _value);
+    }    
     
     // save some gas by making only one contract call
     function burnFrom(address _from, uint256 _value) onlyWhenTransferEnabled {
@@ -68,11 +56,10 @@ contract KyberNetworkCrystal is BurnableToken, MintableToken, HasNoTokens {
         return burn(_value);
     }
     
-    function transfer(address _to, uint256 _value) onlyWhenTransferEnabled returns (bool) {
-        return super.transfer(_to, _value);
-    }
-
-    function transferFrom(address _from, address _to, uint256 _value) onlyWhenTransferEnabled returns (bool) {
-        return super.transferFrom(_from, _to, _value);
-    }    
+    function emergencyERC20Drain( ERC20 token, uint amount ) onlyOwner {
+        token.transfer( owner, amount );
+    }        
 }
+
+
+

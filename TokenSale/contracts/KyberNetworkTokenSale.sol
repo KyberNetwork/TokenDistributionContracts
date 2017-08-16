@@ -12,6 +12,8 @@ contract KyberNetworkTokenSale is ContributorApprover {
     uint                public raisedWei;
     CompanyTokenDistributor public companyDistributor;
     bool                public haltSale;
+    
+    mapping(bytes32=>uint) public proxyPurchases;
         
     function KyberNetworkTokenSale( address _admin,
                                     address _kyberMultiSigWallet,
@@ -47,8 +49,15 @@ contract KyberNetworkTokenSale is ContributorApprover {
         buy( msg.sender );
     }
     
+    event ProxyBuy( bytes32 indexed proxy, address recipient, uint amountInWei );
+    function proxyBuy( bytes32 proxy, address recipient ) payable {
+        uint amount = buy( recipient );
+        proxyPurchases[proxy].add(amount);
+        ProxyBuy( proxy, recipient, amount );
+    }  
+    
     event Buy( address buyer, uint tokens, uint payedWei );
-    function buy( address recipient ) payable {
+    function buy( address recipient ) payable returns(uint){
         require( ! haltSale );
         require( ! saleEnded() );
            
@@ -71,6 +80,8 @@ contract KyberNetworkTokenSale is ContributorApprover {
         assert( this.balance == 0 ); // make sure no funds were left in contract
         
         Buy( recipient, recievedTokens, weiPayment );
+        
+        return weiPayment;
     }
     
     function sendETHToMultiSig( uint value ) internal {
