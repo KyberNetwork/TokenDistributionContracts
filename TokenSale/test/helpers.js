@@ -21,6 +21,8 @@ function random()
     return result + 0.5;
 }
 
+module.exports.setSeed  = function(i) { seed(i);};
+
 module.exports.getRandomInt = function (min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
@@ -32,7 +34,7 @@ module.exports.getRandomInt = function (min, max) {
 module.exports.getRandomBigInt = function() {
     var string = "0x";
     for( var i = 0 ; i < 28 ; i++ ) {
-        var rand = module.exports.getRandomInt(0,256);
+        var rand = module.exports.getRandomInt(0,256);        
         string += Number(rand).toString(16);
     }
     

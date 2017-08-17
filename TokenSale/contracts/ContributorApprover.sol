@@ -36,7 +36,7 @@ contract ContributorApprover {
     
     function eligible( address contributor, uint amountInWei ) constant returns(uint) {
         if( now < cappedSaleStartTime ) return 0;
-        if( now > openSaleEndTime ) return 0;
+        if( now >= openSaleEndTime ) return 0;
 
         uint cap = contributorCap( contributor );
         
@@ -61,5 +61,9 @@ contract ContributorApprover {
     
     function saleEnded() constant returns(bool) {
         return now > openSaleEndTime;
-    } 
+    }
+    
+    function saleStarted() constant returns(bool) {
+        return now >= cappedSaleStartTime;
+    }      
 }

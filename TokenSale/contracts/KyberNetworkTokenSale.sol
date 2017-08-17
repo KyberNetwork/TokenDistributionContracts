@@ -59,10 +59,16 @@ contract KyberNetworkTokenSale is ContributorApprover {
     event Buy( address buyer, uint tokens, uint payedWei );
     function buy( address recipient ) payable returns(uint){
         require( ! haltSale );
+        require( saleStarted() );
         require( ! saleEnded() );
+        
+        // NOTE!!! this has a side affect of preventing multisig wallet from participating
+        // directly in the sale.
+        // this is neither a bug nor a feature.
+        uint totalETHBefore = msg.sender.balance.add( kyberMultiSigWallet.balance ).add(this.balance);
            
         uint weiPayment = eligibleTestAndIncrement( recipient, msg.value ); 
-        
+       
         require( weiPayment > 0 );
         
         // send to msg.sender, not to recipient
@@ -71,13 +77,18 @@ contract KyberNetworkTokenSale is ContributorApprover {
         } 
                 
         // send payment to wallet
-        sendETHToMultiSig( weiPayment );
-        
+        sendETHToMultiSig( weiPayment );        
         raisedWei = raisedWei.add( weiPayment );
         uint recievedTokens = weiPayment.mul( 600 );
-        
+
+
         assert( token.transfer( recipient, recievedTokens ) );        
-        assert( this.balance == 0 ); // make sure no funds were left in contract
+                
+        // make sure no funds were left in contract
+        assert( this.balance == 0 );
+        
+        // make sure no ETH was lost
+        assert( msg.sender.balance.add( kyberMultiSigWallet.balance) == totalETHBefore ); 
         
         Buy( recipient, recievedTokens, weiPayment );
         
@@ -103,6 +114,8 @@ contract KyberNetworkTokenSale is ContributorApprover {
     // tokens are not given in return
     function debugBuy() payable { 
         require( msg.value == 123 );
-        sendETHToMultiSig( msg.value );        
+        sendETHToMultiSig( msg.value );
+        // make sure no funds were left in contract
+        assert( this.balance == 0 );                
     }
 }
