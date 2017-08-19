@@ -172,9 +172,9 @@ var testTransfer = function( tokenContract, userAccounts, sender, reciver, amoun
             assert.equal(result.logs.length, 1, "expected a single event");
             var log = result.logs[0];            
             assert.equal(log.event, "Transfer", "unexpected event");
-            assert.equal(log.args.from.valueOf(), sender.address.valueOf(), "unexpected from address");
-            assert.equal(log.args.to.valueOf(), reciver.address.valueOf(), "unexpected to address");
-            assert.equal(log.args.value.valueOf(), amount.valueOf(), "unexpected amount");         
+            assert.equal(log.args._from.valueOf(), sender.address.valueOf(), "unexpected from address");
+            assert.equal(log.args._to.valueOf(), reciver.address.valueOf(), "unexpected to address");
+            assert.equal(log.args._value.valueOf(), amount.valueOf(), "unexpected amount");         
 
             sender.decreaseBalance( amount );
             reciver.increaseBalance( amount );
@@ -234,9 +234,9 @@ var testTransferFrom = function( tokenContract, userAccounts, sender, spender, r
             assert.equal(result.logs.length, 1, "expected a single event");
             var log = result.logs[0];            
             assert.equal(log.event, "Transfer", "unexpected event");
-            assert.equal(log.args.from.valueOf(), spender.address.valueOf(), "unexpected from address");
-            assert.equal(log.args.to.valueOf(), reciver.address.valueOf(), "unexpected to address");
-            assert.equal(log.args.value.valueOf(), amount.valueOf(), "unexpected amount");
+            assert.equal(log.args._from.valueOf(), spender.address.valueOf(), "unexpected from address");
+            assert.equal(log.args._to.valueOf(), reciver.address.valueOf(), "unexpected to address");
+            assert.equal(log.args._value.valueOf(), amount.valueOf(), "unexpected amount");
                      
             
             spender.decreaseApprove( amount, sender );
@@ -284,9 +284,9 @@ var testApprove = function( tokenContract, userAccounts, sender, to, amount, inI
             assert.equal(result.logs.length, 1, "expected a single event");
             var log = result.logs[0];            
             assert.equal(log.event, "Approval", "unexpected event");
-            assert.equal(log.args.owner.valueOf(), sender.address.valueOf(), "unexpected owner address");
-            assert.equal(log.args.spender.valueOf(), to.address.valueOf(), "unexpected spender address");
-            assert.equal(log.args.value.valueOf(), amount.valueOf(), "unexpected amount");
+            assert.equal(log.args._owner.valueOf(), sender.address.valueOf(), "unexpected owner address");
+            assert.equal(log.args._spender.valueOf(), to.address.valueOf(), "unexpected spender address");
+            assert.equal(log.args._value.valueOf(), amount.valueOf(), "unexpected amount");
             
             sender.setApprove( amount, to );
             return testTokenConsistency( tokenContract, userAccounts, sender );
@@ -332,8 +332,8 @@ var testBurn = function( tokenContract, userAccounts, burner, amount, inICO, tok
             assert.equal(result.logs.length, 1, "expected a single event");
             var log = result.logs[0];            
             assert.equal(log.event, "Burn", "unexpected event");
-            assert.equal(log.args.burner.valueOf(), burner.address.valueOf(), "unexpected burner address");
-            assert.equal(log.args.value.valueOf(), amount.valueOf(), "unexpected amount");         
+            assert.equal(log.args._burner.valueOf(), burner.address.valueOf(), "unexpected burner address");
+            assert.equal(log.args._value.valueOf(), amount.valueOf(), "unexpected amount");         
 
             burner.decreaseBalance( amount );
             totalSupply = totalSupply.minus(amount);
@@ -382,14 +382,14 @@ var testBurnFrom = function( tokenContract, userAccounts, sender, spender, amoun
             assert.equal(result.logs.length, 2, "expected a single event");
             var log = result.logs[0];            
             assert.equal(log.event, "Transfer", "unexpected event");
-            assert.equal(log.args.from.valueOf(), spender.address.valueOf(), "unexpected from address");
-            assert.equal(log.args.to.valueOf(), sender.address.valueOf(), "unexpected to address");
-            assert.equal(log.args.value.valueOf(), amount.valueOf(), "unexpected amount");         
+            assert.equal(log.args._from.valueOf(), spender.address.valueOf(), "unexpected from address");
+            assert.equal(log.args._to.valueOf(), sender.address.valueOf(), "unexpected to address");
+            assert.equal(log.args._value.valueOf(), amount.valueOf(), "unexpected amount");         
 
             var log = result.logs[1];
             assert.equal(log.event, "Burn", "unexpected event");
-            assert.equal(log.args.burner.valueOf(), sender.address.valueOf(), "unexpected burner address");
-            assert.equal(log.args.value.valueOf(), amount.valueOf(), "unexpected amount");
+            assert.equal(log.args._burner.valueOf(), sender.address.valueOf(), "unexpected burner address");
+            assert.equal(log.args._value.valueOf(), amount.valueOf(), "unexpected amount");
                 
             spender.decreaseBalance( amount );
             spender.decreaseApprove( amount, sender );

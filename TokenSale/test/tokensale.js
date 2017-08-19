@@ -568,5 +568,18 @@ contract('token sale', function(accounts) {
     return tryToBuyInCappedSale( tokenSaleContract, accounts, false );
   });
 
+
+
+  it("fast forward to uncapped sale", function() {
+    var fastForwardTime = (publicSaleStartTime - web3.eth.getBlock('latest').timestamp) + 1;
+    return Helpers.sendPromise( 'evm_increaseTime', [fastForwardTime] ).then(function(){
+        return Helpers.sendPromise( 'evm_mine', [] ).then(function(){
+            var currentTime = web3.eth.getBlock('latest').timestamp;
+            if( currentTime < cappedSaleStartTime ) assert.fail( "current time is not as expected" );
+        });
+    });
+  });
+
+
   
 });

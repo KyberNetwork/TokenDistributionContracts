@@ -1,7 +1,7 @@
 pragma solidity ^0.4.11;
 
-import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
-import 'zeppelin-solidity/contracts/token/ERC20Basic.sol';
+import './zeppelin/ownership/Ownable.sol';
+import './zeppelin/token/ERC20Basic.sol';
 
 
 contract SimpleVesting is Ownable {

@@ -2,7 +2,7 @@ pragma solidity ^0.4.11;
 
 import './KyberNetworkCrystal.sol';
 import './SimpleVesting.sol';
-import 'zeppelin-solidity/contracts/token/ERC20.sol';
+import './zeppelin/token/ERC20.sol';
 
 
 contract CompanyTokenDistributor {

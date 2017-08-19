@@ -1,12 +1,13 @@
 pragma solidity ^0.4.11;
 
-import 'zeppelin-solidity/contracts/token/MintableToken.sol';
+import './zeppelin/token/StandardToken.sol';
+import './zeppelin/ownership/Ownable.sol';
 
 // zepplin standard token has two miner issues:
 // 1) Events are a bit different from ERC20 wiki. In particular, _ is missing in the names
 // 2) transferFrom to self could succeed even if balance is insufficient. 
 
-contract KyberNetworkCrystal is MintableToken {
+contract KyberNetworkCrystal is StandardToken, Ownable {
     string  public  constant name = "Kyber Network Crystal";
     string  public  constant symbol = "KNC";
     uint    public  constant decimals = 18;
@@ -25,8 +26,8 @@ contract KyberNetworkCrystal is MintableToken {
 
     function KyberNetworkCrystal( uint tokenTotalAmount, uint startTime, uint endTime, address admin ) {    
         // Mint all tokens. Then disable minting forever.
-        assert( mint( msg.sender, tokenTotalAmount ) );
-        assert( finishMinting() );
+        balances[msg.sender] = tokenTotalAmount;
+        Transfer(address(0x0), msg.sender, tokenTotalAmount);
         
         saleStartTime = startTime;
         saleEndTime = endTime;
@@ -43,7 +44,7 @@ contract KyberNetworkCrystal is MintableToken {
         return super.transferFrom(_from, _to, _value);
     }
     
-    event Burn(address indexed burner, uint value);
+    event Burn(address indexed _burner, uint _value);
     
     function burn(uint _value) onlyWhenTransferEnabled{
         balances[msg.sender] = balances[msg.sender].sub(_value);
