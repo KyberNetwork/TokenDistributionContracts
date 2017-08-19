@@ -207,13 +207,20 @@ var tryToBuyBeforeStart = function( tokenSale, accounts ) {
 
             return buyWithBuyFunction( tokenSale, accounts[item], recipient, value, true );
         }).then(function(){
+            return checkBalances( accounts, tokenContract );
+        }).then(function(){
+        
             var recipient = Helpers.getRandomAccount(accounts);
             var value = Helpers.getRandomBigIntCapped(maxValue);
                     
             return buyWithBuyProxyFunction( tokenSale, accounts[item], new BigNumber(0x123), recipient, value, true );
         }).then(function(){
+            return checkBalances( accounts, tokenContract );
+        }).then(function(){        
             var value = Helpers.getRandomBigIntCapped(maxValue);        
-            return buyWithEtherSending( tokenSale, accounts[item], value, true );        
+            return buyWithEtherSending( tokenSale, accounts[item], value, true );
+        }).then(function(){
+            return checkBalances( accounts, tokenContract );                    
         });
         }, Promise.resolve()).then(function(){fulfill(true)});
     });
@@ -233,9 +240,10 @@ var tryToBuyInCappedSale = function( tokenSale, accounts, halted ) {
     var getRandValue = function( item, recipient, balance ){
         var recIndex = getUserIndex(accounts, recipient );
         var maxValue = balance.div(2).round();
+                
         if( usersCap[ recIndex ].greaterThan(0) && usersCap[ recIndex ].greaterThan(usersUsedCap[ recIndex ])  ) {
             maxValue = (usersCap[ recIndex ].minus(usersUsedCap[ recIndex ])).mul(1.25).round();                
-            maxValue = BigNumber.min(maxValue, balance.div(2).round());
+            maxValue = BigNumber.min(maxValue, balance.div(10).round());
         }
         
         return Helpers.getRandomBigIntCapped(maxValue);
@@ -265,6 +273,7 @@ var tryToBuyInCappedSale = function( tokenSale, accounts, halted ) {
             return getBalancePromise(accounts[item]);
         }).then(function(result){
             balance = result;
+
                         
             // try all 3 ways to join sale
             var recipient = Helpers.getRandomAccount(accounts);
@@ -294,6 +303,10 @@ var tryToBuyInCappedSale = function( tokenSale, accounts, halted ) {
         }).then(function(){
             return checkBalances( accounts, tokenContract );
         }).then(function(){
+            return getBalancePromise(accounts[item]);
+        }).then(function(result){
+            balance = result;
+        
             var recipient = Helpers.getRandomAccount(accounts);
             var value = getRandValue(item, recipient, balance);
             var cap = usersCap[getUserIndex(accounts, recipient)].minus(usersUsedCap[getUserIndex(accounts, recipient)]);
@@ -322,6 +335,10 @@ var tryToBuyInCappedSale = function( tokenSale, accounts, halted ) {
         }).then(function(){
             return checkBalances( accounts, tokenContract );            
         }).then(function(){
+            return getBalancePromise(accounts[item]);
+        }).then(function(result){
+            balance = result;
+        
             var value = getRandValue(item, accounts[item], balance);
             var cap = usersCap[item].minus(usersUsedCap[item]);
             if( usersUsedCap[item].greaterThanOrEqualTo(usersCap[item]) ) {
@@ -348,6 +365,131 @@ var tryToBuyInCappedSale = function( tokenSale, accounts, halted ) {
         }, Promise.resolve()).then(function(){fulfill(true)});
     });
 };
+
+////////////////////////////////////////////////////////////////////////////////
+
+var tryToBuyInUncappedSale = function( tokenSale, accounts, halted ) {
+    var getRandValue = function( item, recipient, balance ){
+        var recIndex = getUserIndex(accounts, recipient );
+        var maxValue = balance.div(2).round();
+        
+        return Helpers.getRandomBigIntCapped(maxValue);
+    };
+    
+    var updatePaidAmount = function( sender, recipient, userCap, userUsedCap, value ) {
+        var amountInWei;
+        if( userUsedCap.greaterThan( userCap ) ) amountInWei = new BigNumber(0);
+        else amountInWei = value;
+        var tokenAmount = amountInWei.mul(ETHtoKNC);
+        
+        usersData.decreaseETHBalance( sender, amountInWei );
+        usersData.increaseETHBalance( multisig, amountInWei );
+        usersData.increaseTokenBalance( recipient,tokenAmount );
+    };
+
+    return new Promise(function (fulfill, reject){
+        var inputs = [];
+        for( var i = 0 ; i < accounts.length ; i++ ) {
+            if( multisig === accounts[i] ) continue;        
+            inputs.push(i);
+        }
+        
+       return inputs.reduce(function (promise, item) {
+        var balance;
+        return promise.then(function () {
+            return getBalancePromise(accounts[item]);
+        }).then(function(result){
+            balance = result;
+            
+            console.log(balance.valueOf());
+                        
+            // try all 3 ways to join sale
+            var recipient = Helpers.getRandomAccount(accounts);
+            var value = getRandValue(item, recipient, balance);
+            var cap = usersCap[getUserIndex(accounts, recipient)];
+            
+            var shouldFail = halted || cap.eq(new BigNumber(0));
+            //console.log( cap.valueOf()); console.log(value.valueOf());
+            
+            var tokenAmount = new BigNumber(0);
+            var ethAmount   = new BigNumber(0);
+            
+            if( ! shouldFail ) {
+                updatePaidAmount( accounts[item],
+                                  recipient,
+                                  usersCap[getUserIndex(accounts, recipient)],
+                                  new BigNumber(0),
+                                  value );
+            
+                usersUsedCap[getUserIndex(accounts, recipient)] = usersUsedCap[getUserIndex(accounts, recipient)].add(value);                
+            }            
+            
+            return buyWithBuyFunction( tokenSale, accounts[item], recipient, value, shouldFail );
+        }).then(function(){
+            return checkBalances( accounts, tokenContract );
+            
+        }).then(function(){
+            return getBalancePromise(accounts[item]);
+        }).then(function(result){
+            balance = result;
+            
+            console.log(balance.valueOf());            
+        
+            var recipient = Helpers.getRandomAccount(accounts);
+            var value = getRandValue(item, recipient, balance);
+            var cap = usersCap[getUserIndex(accounts, recipient)];
+
+            
+            var shouldFail = halted || cap.eq(new BigNumber(0));
+                    
+            //console.log( cap.valueOf()); console.log(value.valueOf());
+            //console.log(usersUsedCap[getUserIndex(accounts, recipient)].valueOf());
+            
+            if( ! shouldFail ) {
+                updatePaidAmount( accounts[item],
+                                  recipient,
+                                  usersCap[getUserIndex(accounts, recipient)],
+                                  new BigNumber(0),
+                                  value );
+
+                usersUsedCap[getUserIndex(accounts, recipient)] = usersUsedCap[getUserIndex(accounts, recipient)].add(value);
+            }
+            
+                                
+            return buyWithBuyProxyFunction( tokenSale, accounts[item], new BigNumber(0x123), recipient, value, shouldFail );
+        }).then(function(){
+            return checkBalances( accounts, tokenContract );            
+        }).then(function(){
+            return getBalancePromise(accounts[item]);
+        }).then(function(result){
+            balance = result;
+
+            console.log(balance.valueOf());
+        
+            var value = getRandValue(item, accounts[item], balance);
+            var cap = usersCap[item];
+            var shouldFail = halted || cap.eq(new BigNumber(0));
+            
+            //console.log( cap.valueOf()); console.log(value.valueOf());
+
+            if( ! shouldFail ) {
+                updatePaidAmount( accounts[item],
+                                  accounts[item],
+                                  usersCap[item],
+                                  new BigNumber(0),
+                                  value );
+            
+                usersUsedCap[item] = usersUsedCap[item].add(value);
+            }
+                        
+            return buyWithEtherSending( tokenSale, accounts[item], value, shouldFail );
+        }).then(function(){
+            return checkBalances( accounts, tokenContract );                     
+        });
+        }, Promise.resolve()).then(function(){fulfill(true)});
+    });
+};
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -413,7 +555,8 @@ var setHalt = function( tokenSaleContract, accounts, admin, currentState, halt )
             expectedHalt = halt;
             return tokenSaleContract.haltSale();
         }).then(function(result){
-            assert.equal(result.valueOf(), result.valueOf(), "unexpected halt state");        
+            console.log(result.valueOf());
+            assert.equal(result.valueOf(), expectedHalt.valueOf(), "unexpected halt state");        
         }).catch(function(error){
             if( shouldFail ) {
                 assert( throwErrorMessage(error), "expected throw, but got " + error);
@@ -499,7 +642,7 @@ contract('token sale', function(accounts) {
   });
 
   
- /* 
+ 
   it("try to buy tokens before sale starts 1", function() {
     return tryToBuyBeforeStart( tokenSaleContract, accounts );
   });
@@ -517,7 +660,7 @@ contract('token sale', function(accounts) {
   it("try to buy tokens before sale starts 2", function() {
     return tryToBuyBeforeStart( tokenSaleContract, accounts );
   });
-*/
+
 
 
 
@@ -575,11 +718,60 @@ contract('token sale', function(accounts) {
     return Helpers.sendPromise( 'evm_increaseTime', [fastForwardTime] ).then(function(){
         return Helpers.sendPromise( 'evm_mine', [] ).then(function(){
             var currentTime = web3.eth.getBlock('latest').timestamp;
-            if( currentTime < cappedSaleStartTime ) assert.fail( "current time is not as expected" );
+            if( currentTime < publicSaleStartTime ) assert.fail( "current time is not as expected" );
+        });
+    });
+  });
+
+  it("try to buy tokens in uncapped sale", function() {
+    return tryToBuyInUncappedSale( tokenSaleContract, accounts, false );
+  });
+
+
+  it("fast forward just for fun", function() {
+    var fastForwardTime = (publicSaleEndTime - web3.eth.getBlock('latest').timestamp) / 2;
+    return Helpers.sendPromise( 'evm_increaseTime', [fastForwardTime] ).then(function(){
+        return Helpers.sendPromise( 'evm_mine', [] ).then(function(){
+            var currentTime = web3.eth.getBlock('latest').timestamp;
+
+        });
+    });
+  });
+
+  it("set halt", function() {
+    return setHalt( tokenSaleContract, accounts, admin, false, true );
+  });
+
+  it("try to buy tokens in uncapped sale but in halt", function() {
+    return tryToBuyInUncappedSale( tokenSaleContract, accounts, true );
+  });
+
+  it("set halt", function() {
+    return setHalt( tokenSaleContract, accounts, admin, true, false );
+  });
+
+  it("try to buy tokens in uncapped sale but not in halt", function() {
+    return tryToBuyInUncappedSale( tokenSaleContract, accounts, false );
+  });
+  
+
+  it("fast forward to end of sale", function() {
+    var fastForwardTime = (publicSaleEndTime - web3.eth.getBlock('latest').timestamp) + 1
+    return Helpers.sendPromise( 'evm_increaseTime', [fastForwardTime] ).then(function(){
+        return Helpers.sendPromise( 'evm_mine', [] ).then(function(){
+            var currentTime = web3.eth.getBlock('latest').timestamp;
         });
     });
   });
 
 
-  
+  it("try to buy tokens after token sale ends 1", function() {
+    return tryToBuyBeforeStart( tokenSaleContract, accounts );
+  });
+
+
+  it("try to buy tokens after token sale ends 2", function() {
+    return tryToBuyBeforeStart( tokenSaleContract, accounts );
+  });
+    
 });
