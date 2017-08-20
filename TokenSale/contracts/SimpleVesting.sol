@@ -15,9 +15,10 @@ contract SimpleVesting is Ownable {
     uint           public finalVestingPeriod;
     
         
-    function SimpleVesting( address to, uint amount, uint startTime ) {
+    function SimpleVesting( address to, uint amount, uint startTime, ERC20Basic kyberToken ) {
         transferOwnership(to);
         vestingAmount = amount;
+        token = kyberToken;
         
         withdrawAmount[0] = amount / 2;
         withdrawAmount[1] = amount / 8;
@@ -31,7 +32,7 @@ contract SimpleVesting is Ownable {
         withdrawTime[3] = withdrawTime[2] + 90 days;
         withdrawTime[4] = withdrawTime[3] + 90 days;
         
-        finalVestingPeriod = withdrawTime[4]; 
+        finalVestingPeriod = withdrawTime[4];
     }
     
     function withdrawAfterPeriod( uint period ) onlyOwner {

@@ -716,6 +716,7 @@ contract('token sale', function(accounts) {
     });
   });
   
+
   it("deploy token sale contract", function() {
     var currentTime = web3.eth.getBlock('latest').timestamp;
   
@@ -744,7 +745,7 @@ contract('token sale', function(accounts) {
         usersData.increaseTokenBalance( companyWallet,companyPreminted );
     });  
   });
-
+  
   it("debug buy", function() {
     return testDebugBuy( accounts );
   });

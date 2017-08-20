@@ -11,8 +11,10 @@ contract PremintedTokenDistributor {
     address public companyWallet;
     uint    public companyTokenAmount;
     
-    SimpleVesting[] public vestedWallets;
-    mapping(address=>SimpleVesting) public vestedWalletAddress; 
+    address[] public beneficiaries;
+    uint[]    public vestedAmount;
+    
+    uint      public vestingStartTime;    
         
     function PremintedTokenDistributor( address   _companyWallet,
                                         uint      _companyTokenAmount,
@@ -22,32 +24,46 @@ contract PremintedTokenDistributor {
         require( _beneficiaries.length == _vestedAmount.length );
         
         for( uint i = 0 ; i < _beneficiaries.length ; i++ ) {
-            vestedWallets.push( new SimpleVesting( _beneficiaries[i],
-                                                   _vestedAmount[i],
-                                                   _vestingStartTime ) );
-            vestedWalletAddress[_beneficiaries[i]] = vestedWallets[i];
+            beneficiaries.push(_beneficiaries[i]);
+            vestedAmount.push(_vestedAmount[i]);
         }
-                                        
+                                                
         companyWallet = _companyWallet;
         companyTokenAmount = _companyTokenAmount;
+        vestingStartTime = _vestingStartTime;
     } 
+    
+    event NewVestedWallet( address indexed     beneficiary,
+                           SimpleVesting       wallet,    
+                           KyberNetworkCrystal token,
+                           address             sender );
 
+    // note that this is callable by anyone, multiple times    
     function beforeSale( KyberNetworkCrystal token, uint amount ) {
         uint totalAmount = 0;
     
         assert( token.transferFrom(msg.sender, companyWallet, companyTokenAmount ) );
         
         totalAmount = totalAmount.add(companyTokenAmount);
-        
-        for( uint i = 0 ; i < vestedWallets.length ; i++ ) {
-            assert( token.transferFrom(msg.sender, vestedWallets[i], vestedWallets[i].vestingAmount() ) );
-            totalAmount = totalAmount.add(vestedWallets[i].vestingAmount());            
+
+        for( uint i = 0 ; i < beneficiaries.length ; i++ ) {
+            SimpleVesting wallet = new SimpleVesting( beneficiaries[i],
+                                                      vestedAmount[i],
+                                                      vestingStartTime,
+                                                      token );
+            
+            assert( token.transferFrom(msg.sender, wallet, wallet.vestingAmount() ) );
+            totalAmount = totalAmount.add(wallet.vestingAmount());
+            
+            // wallet owner should query this log to get his wallet address
+            NewVestedWallet( beneficiaries[i], wallet, token, msg.sender );                        
         }
         
         assert( totalAmount == amount );
         assert(token.allowance(msg.sender, this) == 0 );
     }
     
+    // note that this is callable by anyone    
     function afterSale( KyberNetworkCrystal token, uint amount ) {
         // everything goes to company
         assert( token.transferFrom(msg.sender, companyWallet, amount ) );    

@@ -106,8 +106,8 @@ contract KyberNetworkTokenSale is ContributorApprover {
         
         // send rest of tokens to company
         uint tokenBalance = token.balanceOf( this );
-        assert( token.approve(premintedDistributor, tokenBalance ) );
-        premintedDistributor.afterSale(token, tokenBalance );
+        assert( token.approve( premintedDistributor, tokenBalance ) );
+        premintedDistributor.afterSale( token, tokenBalance );
         
         FinalizeSale();
     }
