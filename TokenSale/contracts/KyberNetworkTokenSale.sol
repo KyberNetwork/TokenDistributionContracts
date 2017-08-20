@@ -3,21 +3,21 @@ pragma solidity ^0.4.11;
 import './KyberNetworkCrystal.sol';
 import './ContributorApprover.sol';
 import './KyberContirbutorWhitelist.sol';
-import './CompanyTokenDistributor.sol';
+import './PremintedTokenDistributor.sol';
 
 contract KyberNetworkTokenSale is ContributorApprover {
     address             public admin;
     address             public kyberMultiSigWallet;
     KyberNetworkCrystal public token;
     uint                public raisedWei;
-    CompanyTokenDistributor public companyDistributor;
+    PremintedTokenDistributor public premintedDistributor;
     bool                public haltSale;
     
     mapping(bytes32=>uint) public proxyPurchases;
 
     function KyberNetworkTokenSale( address _admin,
                                     address _kyberMultiSigWallet,
-                                    CompanyTokenDistributor _companyDistributor,
+                                    PremintedTokenDistributor _premintedDistributor,
                                     KyberContirbutorWhitelist _whilteListContract,
                                     uint _totalTokenSupply,
                                     uint _cappedSaleStartTime,
@@ -31,14 +31,14 @@ contract KyberNetworkTokenSale is ContributorApprover {
     {
         admin = _admin;
         kyberMultiSigWallet = _kyberMultiSigWallet;
-        companyDistributor = _companyDistributor;
+        premintedDistributor = _premintedDistributor;
                                   
         token = new KyberNetworkCrystal( _totalTokenSupply, _cappedSaleStartTime, _publicSaleEndTime, _admin );
         
         uint companyTokenAmount = token.totalSupply() / 2; // TODO - change
 
-        assert( token.approve(companyDistributor, companyTokenAmount ) );
-        companyDistributor.beforeSale( token, companyTokenAmount );
+        assert( token.approve(premintedDistributor, companyTokenAmount ) );
+        premintedDistributor.beforeSale( token, companyTokenAmount );
     }
     
     function setHaltSale( bool halt ) {
@@ -107,8 +107,8 @@ contract KyberNetworkTokenSale is ContributorApprover {
         
         // send rest of tokens to company
         uint tokenBalance = token.balanceOf( this );
-        assert( token.approve(companyDistributor, tokenBalance ) );
-        companyDistributor.afterSale(token, tokenBalance );
+        assert( token.approve(premintedDistributor, tokenBalance ) );
+        premintedDistributor.afterSale(token, tokenBalance );
         
         FinalizeSale();
     }

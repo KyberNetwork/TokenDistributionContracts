@@ -3,10 +3,6 @@ pragma solidity ^0.4.11;
 import './zeppelin/token/StandardToken.sol';
 import './zeppelin/ownership/Ownable.sol';
 
-// zepplin standard token has two miner issues:
-// 1) Events are a bit different from ERC20 wiki. In particular, _ is missing in the names
-// 2) transferFrom to self could succeed even if balance is insufficient. 
-
 contract KyberNetworkCrystal is StandardToken, Ownable {
     string  public  constant name = "Kyber Network Crystal";
     string  public  constant symbol = "KNC";

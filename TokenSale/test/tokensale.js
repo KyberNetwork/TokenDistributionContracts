@@ -1,6 +1,6 @@
 var WhiteList = artifacts.require("./KyberContirbutorWhitelist.sol");
 var TokenSale = artifacts.require("./KyberNetworkTokenSale.sol");
-var CompanyTokenDistributor = artifacts.require("./CompanyTokenDistributor.sol");
+var CompanyTokenDistributor = artifacts.require("./PremintedTokenDistributor.sol");
 var Token = artifacts.require("./KyberNetworkCrystal.sol");
 var BigNumber = require('bignumber.js');
 var Helpers = require('./helpers.js');

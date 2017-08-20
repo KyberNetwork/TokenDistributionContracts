@@ -200,12 +200,8 @@ var testTransfer = function( tokenContract, userAccounts, sender, reciver, amoun
 var testTransferFrom = function( tokenContract, userAccounts, sender, spender, reciver, amount, inICO, tokenAdmin ) {
     var shouldFail = false;
     if( ! spender.canTransfer( amount ) ) {
-        // open zepplin has a bug/feature that allows transferFrom to self
-        // even when there is insufficient balance
-        if( spender.address !== reciver.address ) {
-            console.log( "cannot transfer" );
-            shouldFail = true;
-        }
+        console.log( "cannot transfer" );
+        shouldFail = true;
     }
     if( ! spender.isApproved(sender, amount) ) {
         console.log( "cannot approve" );    
@@ -241,9 +237,8 @@ var testTransferFrom = function( tokenContract, userAccounts, sender, spender, r
             
             spender.decreaseApprove( amount, sender );
 
-            // zepplin has bug/feature that first increment reciver balance and only then decrements spender
-            reciver.increaseBalance( amount );
             spender.decreaseBalance( amount ); 
+            reciver.increaseBalance( amount );
             
             return testTokenConsistency( tokenContract, userAccounts, spender );
         }).then(function(result){
@@ -696,26 +691,6 @@ contract('token contract', function(accounts) {
 
   it("burn before token sale", function() {
     return testBurn( tokenContract, userAccounts, nonOwnerAccount, new BigNumber(2), false, tokenAdmin );  
-  });
-
-  it("try to mint sale from owner", function() {
-    var didntFailed = false;
-    return tokenContract.mint( userAccounts[0].address, new BigNumber(7), {from:tokenOwnerAccount.address}).then(function(){
-        didntFailed = true;
-        assert.fail("expecting function to fail");
-    }).catch(function(err){
-        assert( ! didntFailed, "expecting function to fail" );        
-    });
-  });
-
-  it("try to mint sale from admin", function() {
-    var didntFailed = false;
-    return tokenContract.mint( userAccounts[0].address, new BigNumber(7), {from:tokenAdmin}).then(function(){
-        didntFailed = true;
-        assert.fail("expecting function to fail");
-    }).catch(function(err){
-        assert( ! didntFailed, "expecting function to fail" );        
-    });
   });
 
   it("stress before ICO starts", function() {
