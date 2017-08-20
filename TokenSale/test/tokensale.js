@@ -1,6 +1,5 @@
 var WhiteList = artifacts.require("./KyberContirbutorWhitelist.sol");
 var TokenSale = artifacts.require("./KyberNetworkTokenSale.sol");
-var CompanyTokenDistributor = artifacts.require("./PremintedTokenDistributor.sol");
 var Token = artifacts.require("./KyberNetworkCrystal.sol");
 var BigNumber = require('bignumber.js');
 var Helpers = require('./helpers.js');
@@ -705,18 +704,6 @@ contract('token sale', function(accounts) {
     });
   });
   
-  it("deploy company token distributor", function() {
-    companyWallet = accounts[0];
-    return CompanyTokenDistributor.new(companyWallet,
-                                       companyPreminted,
-                                       [accounts[1], accounts[2]],
-                                       [(premintedSupply.minus(companyPreminted)).div(2),(premintedSupply.minus(companyPreminted)).div(2)],
-                                       cappedSaleStartTime ).then(function(instance){
-        companyTokensContract = instance;
-    });
-  });
-  
-
   it("deploy token sale contract", function() {
     var currentTime = web3.eth.getBlock('latest').timestamp;
   
@@ -726,12 +713,14 @@ contract('token sale', function(accounts) {
 
     admin = Helpers.getRandomAccount(accounts);
     multisig = Helpers.getRandomAccount(accounts);
+    companyWallet = multisig;
     return TokenSale.new( admin,
                           multisig,
-                          companyTokensContract.address,
                           whiteListContract.address,
                           totalSupply,
-                          premintedSupply,
+                          companyPreminted,
+                          [accounts[1], accounts[2]],
+                          [(premintedSupply.minus(companyPreminted)).div(2),(premintedSupply.minus(companyPreminted)).div(2)],
                           cappedSaleStartTime,
                           publicSaleStartTime,
                           publicSaleEndTime ).then(function(instance){
@@ -741,7 +730,7 @@ contract('token sale', function(accounts) {
         tokenContract = Token.at(result);
         return tokenContract.balanceOf(tokenSaleContract.address);
     }).then(function(result){
-        assert.equal( result.valueOf(), totalSupply.minus(premintedSupply), "unexpected contract balance");
+        assert.equal( result.valueOf(), totalSupply.minus(premintedSupply).valueOf(), "unexpected contract balance");
         usersData.increaseTokenBalance( companyWallet,companyPreminted );
     });  
   });

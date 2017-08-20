@@ -5,22 +5,22 @@ import './ContributorApprover.sol';
 import './KyberContirbutorWhitelist.sol';
 import './PremintedTokenDistributor.sol';
 
-contract KyberNetworkTokenSale is ContributorApprover {
+contract KyberNetworkTokenSale is ContributorApprover, PremintedTokenDistributor {
     address             public admin;
     address             public kyberMultiSigWallet;
     KyberNetworkCrystal public token;
     uint                public raisedWei;
-    PremintedTokenDistributor public premintedDistributor;
     bool                public haltSale;
     
     mapping(bytes32=>uint) public proxyPurchases;
 
     function KyberNetworkTokenSale( address _admin,
                                     address _kyberMultiSigWallet,
-                                    PremintedTokenDistributor _premintedDistributor,
                                     KyberContirbutorWhitelist _whilteListContract,
                                     uint _totalTokenSupply,
-                                    uint _premintedTokenSupply,
+                                    uint _companyTokenAmount,
+                                    address[] _teamAddresses,
+                                    uint[]    _teamTokenAmounts,                                    
                                     uint _cappedSaleStartTime,
                                     uint _publicSaleStartTime,
                                     uint _publicSaleEndTime )
@@ -28,16 +28,19 @@ contract KyberNetworkTokenSale is ContributorApprover {
         ContributorApprover( _whilteListContract,
                              _cappedSaleStartTime,
                              _publicSaleStartTime,                                  
-                             _publicSaleEndTime )                               
+                             _publicSaleEndTime )                             
     {
         admin = _admin;
         kyberMultiSigWallet = _kyberMultiSigWallet;
-        premintedDistributor = _premintedDistributor;
                                   
         token = new KyberNetworkCrystal( _totalTokenSupply, _cappedSaleStartTime, _publicSaleEndTime, _admin );
-        
-        assert( token.approve(premintedDistributor, _premintedTokenSupply ) );
-        premintedDistributor.beforeSale( token, _premintedTokenSupply );
+           
+        distributePremintedTokens( token,
+                                   kyberMultiSigWallet,
+                                   _companyTokenAmount,
+                                   _teamAddresses,
+                                   _teamTokenAmounts,                                   
+                                   _cappedSaleStartTime );
     }
     
     function setHaltSale( bool halt ) {
@@ -105,9 +108,7 @@ contract KyberNetworkTokenSale is ContributorApprover {
         require( saleEnded() );
         
         // send rest of tokens to company
-        uint tokenBalance = token.balanceOf( this );
-        assert( token.approve( premintedDistributor, tokenBalance ) );
-        premintedDistributor.afterSale( token, tokenBalance );
+        sendRemainingTokensToCompanyWallet( token, kyberMultiSigWallet );
         
         FinalizeSale();
     }
