@@ -18,6 +18,7 @@ var companyTokensContract;
 var tokenSaleContract;
 var tokenContract;
 
+var companyWallet;
 
 var cappedSaleStartTime;
 var publicSaleStartTime;
@@ -587,7 +588,7 @@ var testFinalize = function( accounts, afterSaleEnded ) {
         
         return tokenContract.balanceOf(tokenSaleContract.address).then(function(result){
             saleTokensBalanceBefore = result;
-            return tokenContract.balanceOf(companyTokensContract.address);
+            return tokenContract.balanceOf(companyWallet);
         }).then(function(result){
             companyTokensBalanceBefore = result;
             var account = Helpers.getRandomAccount(accounts);
@@ -598,7 +599,7 @@ var testFinalize = function( accounts, afterSaleEnded ) {
             return tokenContract.balanceOf(tokenSaleContract.address);
         }).then(function(result){            
             saleTokensBalanceAfter = result;
-            return tokenContract.balanceOf(companyTokensContract.address);
+            return tokenContract.balanceOf(companyWallet);
         }).then(function(result){
             companyTokensBalanceAfter = result;
             console.log(saleTokensBalanceAfter.valueOf());
@@ -620,7 +621,7 @@ var testFinalize = function( accounts, afterSaleEnded ) {
             return tokenContract.balanceOf(tokenSaleContract.address);
         }).then(function(result){            
             saleTokensBalanceAfter = result;
-            return tokenContract.balanceOf(companyTokensContract.address);
+            return tokenContract.balanceOf(companyWallet);
         }).then(function(result){
             companyTokensBalanceAfter = result;
 
@@ -674,6 +675,8 @@ var testDebugBuy = function( accounts ) {
 var ETHtoKNC = new BigNumber(600);
 
 var totalSupply = ((new BigNumber(10)).pow(18)).mul(200000 * 600);
+var premintedSupply = ((new BigNumber(10)).pow(18)).mul(200000 * 400);
+var companyPreminted = premintedSupply.div(2); 
 
 var admin;
 var multisig;
@@ -703,7 +706,12 @@ contract('token sale', function(accounts) {
   });
   
   it("deploy company token distributor", function() {
-    return CompanyTokenDistributor.new(accounts[0]).then(function(instance){
+    companyWallet = accounts[0];
+    return CompanyTokenDistributor.new(companyWallet,
+                                       companyPreminted,
+                                       [accounts[1], accounts[2]],
+                                       [(premintedSupply.minus(companyPreminted)).div(2),(premintedSupply.minus(companyPreminted)).div(2)],
+                                       cappedSaleStartTime ).then(function(instance){
         companyTokensContract = instance;
     });
   });
@@ -722,6 +730,7 @@ contract('token sale', function(accounts) {
                           companyTokensContract.address,
                           whiteListContract.address,
                           totalSupply,
+                          premintedSupply,
                           cappedSaleStartTime,
                           publicSaleStartTime,
                           publicSaleEndTime ).then(function(instance){
@@ -731,7 +740,8 @@ contract('token sale', function(accounts) {
         tokenContract = Token.at(result);
         return tokenContract.balanceOf(tokenSaleContract.address);
     }).then(function(result){
-        assert.equal( result.valueOf(), totalSupply.div(2).round().valueOf(), "unexpected contract balance");
+        assert.equal( result.valueOf(), totalSupply.minus(premintedSupply), "unexpected contract balance");
+        usersData.increaseTokenBalance( companyWallet,companyPreminted );
     });  
   });
 

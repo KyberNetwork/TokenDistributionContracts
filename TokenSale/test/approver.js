@@ -1,7 +1,6 @@
 var WhiteList = artifacts.require("./KyberContirbutorWhitelist.sol");
 var TokenSale = artifacts.require("./KyberNetworkTokenSale.sol");
 var MockApprover = artifacts.require("./mock/Approver.sol");
-var CompanyTokenDistributor = artifacts.require("./PremintedTokenDistributor.sol");
 var BigNumber = require('bignumber.js');
 var Helpers = require('./helpers.js');
  
@@ -10,7 +9,7 @@ var Helpers = require('./helpers.js');
 
 var whiteListContract;
 var mockApproverContract;
-var companyTokensContract;
+
 
 
 var cappedSaleStartTime;
@@ -196,14 +195,8 @@ contract('contributor approver', function(accounts) {
         return initRandomWhilteList( whiteListContract, accounts[2], accounts );
     });
   });
-  
-  it("deploy company token distributor", function() {
-    return CompanyTokenDistributor.new(accounts[0]).then(function(instance){
-        companyTokensContract = instance;
-    });
-  });
-  
-  it("deploy token sale contract", function() {
+    
+  it("deploy mock contract", function() {
     var currentTime = web3.eth.getBlock('latest').timestamp;
   
     cappedSaleStartTime = currentTime + 3600; // one hour from now

@@ -20,6 +20,7 @@ contract KyberNetworkTokenSale is ContributorApprover {
                                     PremintedTokenDistributor _premintedDistributor,
                                     KyberContirbutorWhitelist _whilteListContract,
                                     uint _totalTokenSupply,
+                                    uint _premintedTokenSupply,
                                     uint _cappedSaleStartTime,
                                     uint _publicSaleStartTime,
                                     uint _publicSaleEndTime )
@@ -35,10 +36,8 @@ contract KyberNetworkTokenSale is ContributorApprover {
                                   
         token = new KyberNetworkCrystal( _totalTokenSupply, _cappedSaleStartTime, _publicSaleEndTime, _admin );
         
-        uint companyTokenAmount = token.totalSupply() / 2; // TODO - change
-
-        assert( token.approve(premintedDistributor, companyTokenAmount ) );
-        premintedDistributor.beforeSale( token, companyTokenAmount );
+        assert( token.approve(premintedDistributor, _premintedTokenSupply ) );
+        premintedDistributor.beforeSale( token, _premintedTokenSupply );
     }
     
     function setHaltSale( bool halt ) {
