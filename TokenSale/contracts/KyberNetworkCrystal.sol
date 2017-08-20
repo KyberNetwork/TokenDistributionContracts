@@ -27,6 +27,7 @@ contract KyberNetworkCrystal is StandardToken, Ownable {
     function KyberNetworkCrystal( uint tokenTotalAmount, uint startTime, uint endTime, address admin ) {    
         // Mint all tokens. Then disable minting forever.
         balances[msg.sender] = tokenTotalAmount;
+        totalSupply = tokenTotalAmount;
         Transfer(address(0x0), msg.sender, tokenTotalAmount);
         
         saleStartTime = startTime;

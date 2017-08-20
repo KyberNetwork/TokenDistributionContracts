@@ -577,6 +577,100 @@ var setHalt = function( tokenSaleContract, accounts, admin, currentState, halt )
 
 ////////////////////////////////////////////////////////////////////////////////
 
+var testFinalize = function( accounts, afterSaleEnded ) {
+    return new Promise(function (fulfill, reject){
+        var saleTokensBalanceBefore;
+        var companyTokensBalanceBefore;
+        
+        var saleTokensBalanceAfter;
+        var companyTokensBalanceAfter;
+        
+        return tokenContract.balanceOf(tokenSaleContract.address).then(function(result){
+            saleTokensBalanceBefore = result;
+            return tokenContract.balanceOf(companyTokensContract.address);
+        }).then(function(result){
+            companyTokensBalanceBefore = result;
+            var account = Helpers.getRandomAccount(accounts);
+            return tokenSaleContract.finalizeSale({from:account});
+        }).then(function(){        
+            assert( afterSaleEnded, "expecting failure before end of sale" );            
+            
+            return tokenContract.balanceOf(tokenSaleContract.address);
+        }).then(function(result){            
+            saleTokensBalanceAfter = result;
+            return tokenContract.balanceOf(companyTokensContract.address);
+        }).then(function(result){
+            companyTokensBalanceAfter = result;
+            console.log(saleTokensBalanceAfter.valueOf());
+            assert.equal( saleTokensBalanceAfter.valueOf(), (new BigNumber(0)).valueOf(),
+            "token sale contract token balance after sale must be 0" );
+
+            var expectedCompanyBalance = companyTokensBalanceBefore.plus(saleTokensBalanceBefore);
+            
+            assert.equal( expectedCompanyBalance.valueOf(), companyTokensBalanceAfter.valueOf(), "unexpected company balance");
+            
+            return fulfill(true);
+            
+        }).catch(function(error){
+            assert( ! afterSaleEnded, "expecting failure only before end of sale" );
+            assert( throwErrorMessage(error), "expected throw, but got " + error);
+            
+            // check that balances were not changed
+            
+            return tokenContract.balanceOf(tokenSaleContract.address);
+        }).then(function(result){            
+            saleTokensBalanceAfter = result;
+            return tokenContract.balanceOf(companyTokensContract.address);
+        }).then(function(result){
+            companyTokensBalanceAfter = result;
+
+            if( ! afterSaleEnded ) {
+                assert.equal( companyTokensBalanceBefore.valueOf(), companyTokensBalanceAfter.valueOf(), "unexpected company balance");
+                assert.equal( saleTokensBalanceBefore.valueOf(), saleTokensBalanceAfter.valueOf(), "unexpected company balance");
+            }
+                        
+            return fulfill(true);            
+        });            
+    });
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+var testDebugBuy = function( accounts ) {
+    return new Promise(function (fulfill, reject){
+        var multisigBalanceBefore;
+        var multisigBalanceAfter;
+
+        var account = Helpers.getRandomAccount(accounts);
+
+        return getBalancePromise( multisig).then(function(result){
+            multisigBalanceBefore = result;
+            
+            return tokenSaleContract.debugBuy({value: 123, from:account});
+        }).then(function(){
+            return getBalancePromise( multisig );
+        }).then(function(result){
+            multisnigBalanceAfter = result;
+            var expectedBalance = multisigBalanceBefore.add(123);
+            
+            assert.equal( expectedBalance.valueOf(), multisnigBalanceAfter.valueOf(),
+            "Unexpected balance");
+            
+            // try to send higher values
+            return tokenSaleContract.debugBuy({value: 1230, from:account});
+        }).then(function(){
+            assert.fail( "expected to fail");
+        }).catch(function(error){
+            assert( throwErrorMessage(error), "expected throw");
+            fulfill(true);
+        });
+    });
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+
 var ETHtoKNC = new BigNumber(600);
 
 var totalSupply = ((new BigNumber(10)).pow(18)).mul(200000 * 600);
@@ -641,8 +735,18 @@ contract('token sale', function(accounts) {
     });  
   });
 
+  it("debug buy", function() {
+    return testDebugBuy( accounts );
+  });
+
+
+
+
+  it("finalize", function() {
+    return testFinalize( accounts, false );
+  });
   
- 
+
   it("try to buy tokens before sale starts 1", function() {
     return tryToBuyBeforeStart( tokenSaleContract, accounts );
   });
@@ -662,6 +766,13 @@ contract('token sale', function(accounts) {
   });
 
 
+  it("finalize", function() {
+    return testFinalize( accounts, false );
+  });
+
+  it("debug buy", function() {
+    return testDebugBuy( accounts );
+  });
 
 
   it("fast forward to capped sale", function() {
@@ -673,6 +784,15 @@ contract('token sale', function(accounts) {
         });
     });
   });
+
+  it("finalize", function() {
+    return testFinalize( accounts, false );
+  });
+
+  it("debug buy", function() {
+    return testDebugBuy( accounts );
+  });
+
 
   it("try to buy tokens in capped sale", function() {
     return tryToBuyInCappedSale( tokenSaleContract, accounts, false );
@@ -693,6 +813,13 @@ contract('token sale', function(accounts) {
     });
   });
 
+  it("finalize", function() {
+    return testFinalize( accounts, false );
+  });
+
+  it("debug buy", function() {
+    return testDebugBuy( accounts );
+  });
 
 
   it("try to buy tokens again in capped sale when halted", function() {
@@ -722,6 +849,15 @@ contract('token sale', function(accounts) {
         });
     });
   });
+
+  it("finalize", function() {
+    return testFinalize( accounts, false );
+  });
+
+  it("debug buy", function() {
+    return testDebugBuy( accounts );
+  });
+
 
   it("try to buy tokens in uncapped sale", function() {
     return tryToBuyInUncappedSale( tokenSaleContract, accounts, false );
@@ -755,6 +891,15 @@ contract('token sale', function(accounts) {
   });
   
 
+  it("finalize", function() {
+    return testFinalize( accounts, false );
+  });
+
+  it("debug buy", function() {
+    return testDebugBuy( accounts );
+  });
+
+
   it("fast forward to end of sale", function() {
     var fastForwardTime = (publicSaleEndTime - web3.eth.getBlock('latest').timestamp) + 1
     return Helpers.sendPromise( 'evm_increaseTime', [fastForwardTime] ).then(function(){
@@ -773,5 +918,13 @@ contract('token sale', function(accounts) {
   it("try to buy tokens after token sale ends 2", function() {
     return tryToBuyBeforeStart( tokenSaleContract, accounts );
   });
-    
+  
+
+  it("finalize", function() {
+    return testFinalize( accounts, true );
+  });
+
+  it("debug buy", function() {
+    return testDebugBuy( accounts );
+  });
 });

@@ -14,7 +14,7 @@ contract KyberNetworkTokenSale is ContributorApprover {
     bool                public haltSale;
     
     mapping(bytes32=>uint) public proxyPurchases;
-        
+
     function KyberNetworkTokenSale( address _admin,
                                     address _kyberMultiSigWallet,
                                     CompanyTokenDistributor _companyDistributor,
@@ -36,6 +36,7 @@ contract KyberNetworkTokenSale is ContributorApprover {
         token = new KyberNetworkCrystal( _totalTokenSupply, _cappedSaleStartTime, _publicSaleEndTime, _admin );
         
         uint companyTokenAmount = token.totalSupply() / 2; // TODO - change
+
         assert( token.approve(companyDistributor, companyTokenAmount ) );
         companyDistributor.beforeSale( token, companyTokenAmount );
     }
@@ -108,6 +109,8 @@ contract KyberNetworkTokenSale is ContributorApprover {
         uint tokenBalance = token.balanceOf( this );
         assert( token.approve(companyDistributor, tokenBalance ) );
         companyDistributor.afterSale(token, tokenBalance );
+        
+        FinalizeSale();
     }
     
     // just to check that funds goes to the right place
