@@ -33,7 +33,10 @@ contract KyberNetworkTokenSale is ContributorApprover, PremintedTokenDistributor
         admin = _admin;
         kyberMultiSigWallet = _kyberMultiSigWallet;
                                   
-        token = new KyberNetworkCrystal( _totalTokenSupply, _cappedSaleStartTime, _publicSaleEndTime, _admin );
+        token = new KyberNetworkCrystal( _totalTokenSupply,
+                                         _cappedSaleStartTime,
+                                         _publicSaleEndTime + 7 days,
+                                         _admin );
            
         distributePremintedTokens( token,
                                    kyberMultiSigWallet,

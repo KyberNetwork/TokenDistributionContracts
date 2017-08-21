@@ -36,8 +36,9 @@ Token transfers are disabled.
 
 4. On T+1, the open sale starts. At this point users that are in the whitelist can buy tokens with any amount.
 
-5. On T+2, the sale ends. Token transfers are enabled.
+5. On T+2, the sale ends
 6. On T+2 + epsilon, `finalizeSale` is called and unsold tokens are sent to the company wallet.  
+7. On T+9 token transfers are enabled.
 
 ### Per module description
 The system has 3 modules, namely, white list, token, and token sale modules.
