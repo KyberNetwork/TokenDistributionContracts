@@ -68,11 +68,6 @@ contract KyberNetworkTokenSale is ContributorApprover, PremintedTokenDistributor
         require( saleStarted() );
         require( ! saleEnded() );
         
-        // NOTE!!! this has a side affect of preventing multisig wallet from participating
-        // directly in the sale.
-        // this is neither a bug nor a feature.
-        uint totalETHBefore = msg.sender.balance.add( kyberMultiSigWallet.balance ).add(this.balance);
-           
         uint weiPayment = eligibleTestAndIncrement( recipient, msg.value ); 
        
         require( weiPayment > 0 );
@@ -87,14 +82,8 @@ contract KyberNetworkTokenSale is ContributorApprover, PremintedTokenDistributor
         raisedWei = raisedWei.add( weiPayment );
         uint recievedTokens = weiPayment.mul( 600 );
 
-
         assert( token.transfer( recipient, recievedTokens ) );        
                 
-        // make sure no funds were left in contract
-        assert( this.balance == 0 );
-        
-        // make sure no ETH was lost
-        assert( msg.sender.balance.add( kyberMultiSigWallet.balance) == totalETHBefore ); 
         
         Buy( recipient, recievedTokens, weiPayment );
         
@@ -114,6 +103,14 @@ contract KyberNetworkTokenSale is ContributorApprover, PremintedTokenDistributor
         sendRemainingTokensToCompanyWallet( token, kyberMultiSigWallet );
         
         FinalizeSale();
+    }
+    
+    // ETH balance is always expected to be 0.
+    // but in case something went wrong, we use this function to extract the eth.
+    function emergencyDrain() {
+        require(msg.sender == admin );
+         
+        kyberMultiSigWallet.transfer(this.balance); 
     }
     
     // just to check that funds goes to the right place

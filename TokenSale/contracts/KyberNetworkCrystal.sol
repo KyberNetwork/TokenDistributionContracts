@@ -14,9 +14,15 @@ contract KyberNetworkCrystal is StandardToken, Ownable {
     address public  tokenSaleContract;
 
     modifier onlyWhenTransferEnabled() {
-        if( now >= saleStartTime && now <= saleEndTime ) {
+        if( now <= saleEndTime && now >= saleStartTime ) {
             require( msg.sender == tokenSaleContract );
         }
+        _;
+    }
+
+    modifier validDestination( address to ) {
+        require(to != address(0x0));
+        require(to != address(this) );
         _;
     }
 
@@ -33,11 +39,17 @@ contract KyberNetworkCrystal is StandardToken, Ownable {
         transferOwnership(admin); // admin could drain tokens that were sent here by mistake
     }
   
-    function transfer(address _to, uint _value) onlyWhenTransferEnabled returns (bool) {
+    function transfer(address _to, uint _value)
+        onlyWhenTransferEnabled
+        validDestination(_to)
+        returns (bool) {
         return super.transfer(_to, _value);
     }
 
-    function transferFrom(address _from, address _to, uint _value) onlyWhenTransferEnabled returns (bool) {
+    function transferFrom(address _from, address _to, uint _value)
+        onlyWhenTransferEnabled
+        validDestination(_to)
+        returns (bool) {
         return super.transferFrom(_from, _to, _value);
     }
     
