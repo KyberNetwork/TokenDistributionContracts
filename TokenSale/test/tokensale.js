@@ -577,7 +577,7 @@ var setHalt = function( tokenSaleContract, accounts, admin, currentState, halt )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-var testFinalize = function( accounts, afterSaleEnded ) {
+var testFinalize = function( accounts, afterSaleEnded, admin ) {
     return new Promise(function (fulfill, reject){
         var saleTokensBalanceBefore;
         var companyTokensBalanceBefore;
@@ -591,7 +591,7 @@ var testFinalize = function( accounts, afterSaleEnded ) {
         }).then(function(result){
             companyTokensBalanceBefore = result;
             var account = Helpers.getRandomAccount(accounts);
-            return tokenSaleContract.finalizeSale({from:account});
+            return tokenSaleContract.finalizeSale({from:admin});
         }).then(function(){        
             assert( afterSaleEnded, "expecting failure before end of sale" );            
             
@@ -605,7 +605,8 @@ var testFinalize = function( accounts, afterSaleEnded ) {
             assert.equal( saleTokensBalanceAfter.valueOf(), (new BigNumber(0)).valueOf(),
             "token sale contract token balance after sale must be 0" );
 
-            var expectedCompanyBalance = companyTokensBalanceBefore.plus(saleTokensBalanceBefore);
+            // unsold tokens are burnt
+            var expectedCompanyBalance = companyTokensBalanceBefore;
             
             assert.equal( expectedCompanyBalance.valueOf(), companyTokensBalanceAfter.valueOf(), "unexpected company balance");
             
@@ -674,8 +675,7 @@ var testDebugBuy = function( accounts ) {
 var ETHtoKNC = new BigNumber(600);
 
 var totalSupply = ((new BigNumber(10)).pow(18)).mul(200000 * 600);
-var premintedSupply = ((new BigNumber(10)).pow(18)).mul(200000 * 400);
-var companyPreminted = premintedSupply.div(2); 
+var premintedSupply = ((new BigNumber(10)).pow(18)).mul(200000 * 400); 
 
 var admin;
 var multisig;
@@ -718,9 +718,7 @@ contract('token sale', function(accounts) {
                           multisig,
                           whiteListContract.address,
                           totalSupply,
-                          companyPreminted,
-                          [accounts[1], accounts[2]],
-                          [(premintedSupply.minus(companyPreminted)).div(2),(premintedSupply.minus(companyPreminted)).div(2)],
+                          premintedSupply,
                           cappedSaleStartTime,
                           publicSaleStartTime,
                           publicSaleEndTime ).then(function(instance){
@@ -731,7 +729,10 @@ contract('token sale', function(accounts) {
         return tokenContract.balanceOf(tokenSaleContract.address);
     }).then(function(result){
         assert.equal( result.valueOf(), totalSupply.minus(premintedSupply).valueOf(), "unexpected contract balance");
-        usersData.increaseTokenBalance( companyWallet,companyPreminted );
+        return tokenContract.balanceOf(companyWallet);
+    }).then(function(result){
+        assert.equal( result.valueOf(), premintedSupply.valueOf(), "unexpected company balance");    
+        usersData.increaseTokenBalance( companyWallet,premintedSupply );
     });  
   });
   
@@ -743,7 +744,7 @@ contract('token sale', function(accounts) {
 
 
   it("finalize", function() {
-    return testFinalize( accounts, false );
+    return testFinalize( accounts, false, admin );
   });
   
 
@@ -767,7 +768,7 @@ contract('token sale', function(accounts) {
 
 
   it("finalize", function() {
-    return testFinalize( accounts, false );
+    return testFinalize( accounts, false, admin );
   });
 
   it("debug buy", function() {
@@ -786,7 +787,7 @@ contract('token sale', function(accounts) {
   });
 
   it("finalize", function() {
-    return testFinalize( accounts, false );
+    return testFinalize( accounts, false, admin );
   });
 
   it("debug buy", function() {
@@ -814,7 +815,7 @@ contract('token sale', function(accounts) {
   });
 
   it("finalize", function() {
-    return testFinalize( accounts, false );
+    return testFinalize( accounts, false, admin );
   });
 
   it("debug buy", function() {
@@ -851,7 +852,7 @@ contract('token sale', function(accounts) {
   });
 
   it("finalize", function() {
-    return testFinalize( accounts, false );
+    return testFinalize( accounts, false, admin );
   });
 
   it("debug buy", function() {
@@ -892,7 +893,7 @@ contract('token sale', function(accounts) {
   
 
   it("finalize", function() {
-    return testFinalize( accounts, false );
+    return testFinalize( accounts, false, admin );
   });
 
   it("debug buy", function() {
@@ -921,7 +922,7 @@ contract('token sale', function(accounts) {
   
 
   it("finalize", function() {
-    return testFinalize( accounts, true );
+    return testFinalize( accounts, true, admin );
   });
 
   it("debug buy", function() {

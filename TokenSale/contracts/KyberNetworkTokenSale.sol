@@ -3,9 +3,8 @@ pragma solidity ^0.4.11;
 import './KyberNetworkCrystal.sol';
 import './ContributorApprover.sol';
 import './KyberContirbutorWhitelist.sol';
-import './PremintedTokenDistributor.sol';
 
-contract KyberNetworkTokenSale is ContributorApprover, PremintedTokenDistributor {
+contract KyberNetworkTokenSale is ContributorApprover {
     address             public admin;
     address             public kyberMultiSigWallet;
     KyberNetworkCrystal public token;
@@ -18,9 +17,7 @@ contract KyberNetworkTokenSale is ContributorApprover, PremintedTokenDistributor
                                     address _kyberMultiSigWallet,
                                     KyberContirbutorWhitelist _whilteListContract,
                                     uint _totalTokenSupply,
-                                    uint _companyTokenAmount,
-                                    address[] _teamAddresses,
-                                    uint[]    _teamTokenAmounts,                                    
+                                    uint _premintedTokenSupply,
                                     uint _cappedSaleStartTime,
                                     uint _publicSaleStartTime,
                                     uint _publicSaleEndTime )
@@ -37,13 +34,9 @@ contract KyberNetworkTokenSale is ContributorApprover, PremintedTokenDistributor
                                          _cappedSaleStartTime,
                                          _publicSaleEndTime + 7 days,
                                          _admin );
-           
-        distributePremintedTokens( token,
-                                   kyberMultiSigWallet,
-                                   _companyTokenAmount,
-                                   _teamAddresses,
-                                   _teamTokenAmounts,                                   
-                                   _cappedSaleStartTime );
+
+        // transfer preminted tokens to company wallet                                         
+        token.transfer( kyberMultiSigWallet, _premintedTokenSupply );
     }
     
     function setHaltSale( bool halt ) {
@@ -98,19 +91,27 @@ contract KyberNetworkTokenSale is ContributorApprover, PremintedTokenDistributor
     // function is callable by everyone
     function finalizeSale() {
         require( saleEnded() );
+        require(msg.sender == admin );
         
-        // send rest of tokens to company
-        sendRemainingTokensToCompanyWallet( token, kyberMultiSigWallet );
+        // burn remaining tokens
+        token.burn(token.balanceOf(this));
         
         FinalizeSale();
     }
     
     // ETH balance is always expected to be 0.
     // but in case something went wrong, we use this function to extract the eth.
-    function emergencyDrain() {
+    function emergencyDrain(ERC20 anyToken) {
         require(msg.sender == admin );
-         
-        kyberMultiSigWallet.transfer(this.balance); 
+        require( saleEnded() );        
+        
+        if( this.balance > 0 ) {
+            sendETHToMultiSig( this.balance );
+        }
+        
+        if( anyToken != address(0x0) ) {
+            assert( anyToken.transfer(kyberMultiSigWallet, anyToken.balanceOf(this)) );
+        } 
     }
     
     // just to check that funds goes to the right place
@@ -118,7 +119,5 @@ contract KyberNetworkTokenSale is ContributorApprover, PremintedTokenDistributor
     function debugBuy() payable { 
         require( msg.value == 123 );
         sendETHToMultiSig( msg.value );
-        // make sure no funds were left in contract
-        assert( this.balance == 0 );                
     }
 }
