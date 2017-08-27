@@ -10,8 +10,7 @@ In the sale, bounded number of tokens is offered (e.g., there is hard cap for ra
 In the first 24 hours user contribution is limited by his cap.
 In the second 24 hours, (registered) users can make any size of contribution, until token supply is depleted.
 
-Preminted tokens are allocated to the company and to the team.
-Team tokens are vested for 2 years, with 1 year cliff.
+Preminted tokens are allocated to the company wallet.  
 
 
 ## Detailed description
@@ -37,7 +36,7 @@ Token transfers are disabled.
 4. On T+1, the open sale starts. At this point users that are in the whitelist can buy tokens with any amount.
 
 5. On T+2, the sale ends
-6. On T+2 + epsilon, `finalizeSale` is called and unsold tokens are sent to the company wallet.  
+6. On T+2 + epsilon, `finalizeSale` is called and unsold tokens are burned.  
 7. On T+9 token transfers are enabled.
 
 ### Per module description
@@ -47,7 +46,12 @@ The system has 3 modules, namely, white list, token, and token sale modules.
 Implemented in `KyberContirbutorWhitelist.sol`.
 Provides a raw list of addresses and their cap.
 Owner of the contract can list and delist (set cap to 0) users at any point.
+Cap of 1 means the user is a slack user, and their cap is set globally before token sale.
 In practice, we will not make changes in the list after its first initialization, unless issues are discovered.
+This is necessary as we expect > 10k users, and we must start uploading the users before we have a full list.
+For this reason we also have an optimzed version of listing which can take an array as input. 
+
+Since we are nice, we will also destory the contract after token sale to save disk space for network node.
 
 #### Token
 Implemented in `KyberNetworkCrystal.sol`. The token is fully compatible with ERC20 standard, with the next two additions:
@@ -66,9 +70,7 @@ The token sale contract has 3 roles:
 2. Verifying that user is listed and that cap is not exceeded. Implemented in `ContributorApprover.sol`.
 3. Distributing tokens to buyers. Implemented in `KyberNetworkTokenSale.sol`.
 
-The `KyberNetworkTokenSale` contract inherent from `KyberContirbutorWhitelist` and `ContributorApprover`.
-The last 2 contracts provide only internal functions to change contract state and public functions to query current state.
-All state changes are invoked by `KyberNetworkTokenSale`.
+The `KyberNetworkTokenSale` contract inherent `ContributorApprover`.
 
 ### Use of zeppelin code
 We use open-zeppling code for `SafeMath`, `Ownable` and `StandardToken` logic.

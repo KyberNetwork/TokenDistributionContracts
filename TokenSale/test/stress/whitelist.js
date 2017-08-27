@@ -1,6 +1,6 @@
 var WhiteList = artifacts.require("./KyberContirbutorWhitelist.sol");
 var BigNumber = require('bignumber.js');
-var Helpers = require('./helpers.js');
+var Helpers = require('./../helpers.js');
 
 
 var listContract;
