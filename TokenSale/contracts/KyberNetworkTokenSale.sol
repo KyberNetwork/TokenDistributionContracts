@@ -51,7 +51,7 @@ contract KyberNetworkTokenSale is ContributorApprover {
     event ProxyBuy( bytes32 indexed proxy, address recipient, uint amountInWei );
     function proxyBuy( bytes32 proxy, address recipient ) payable {
         uint amount = buy( recipient );
-        proxyPurchases[proxy].add(amount);
+        proxyPurchases[proxy] = proxyPurchases[proxy].add(amount);
         ProxyBuy( proxy, recipient, amount );
     }  
     
