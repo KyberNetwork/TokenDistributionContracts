@@ -116,7 +116,7 @@ var initRandomWhilteList = function( whiteList, listOwner, accounts ) {
 var buyWithBuyFunction = function( tokenSaleContract, sender, recipient, value, shouldFail ) {
     return new Promise(function(fulfill, reject){
         console.log("buy: sender " + sender.valueOf() + " recipient " + recipient.valueOf() + " value " + value.valueOf() + " | " + !shouldFail);
-        return tokenSaleContract.buy(recipient, {from:sender, value:value}).then(function(){
+        return tokenSaleContract.buy(recipient, {from:sender, value:value, gasPrice:50000000}).then(function(){
             assert( ! shouldFail, "buyWithBuyFunction: expected throw, but didn't get one");
             fulfill(true);
         }).catch(function(error){
@@ -137,7 +137,7 @@ var buyWithBuyFunction = function( tokenSaleContract, sender, recipient, value, 
 var buyWithBuyProxyFunction = function( tokenSaleContract, sender, proxy, recipient, value, shouldFail ) {
     return new Promise(function(fulfill, reject){
         console.log("proxyBuy: sender " + sender.valueOf() + " proxy " + proxy.valueOf() + " recipient " + recipient.valueOf() + " value " + value.valueOf() + " | " + !shouldFail);    
-        return tokenSaleContract.proxyBuy(proxy, recipient, {from:sender, value:value}).then(function(){
+        return tokenSaleContract.proxyBuy(proxy, recipient, {from:sender, value:value, gasPrice:50000000}).then(function(){
             assert( ! shouldFail, "buyWithBuyProxyFunction: expected throw, but didn't get one");
             fulfill(true);
         }).catch(function(error){
@@ -158,7 +158,7 @@ var buyWithBuyProxyFunction = function( tokenSaleContract, sender, proxy, recipi
 var buyWithEtherSending = function( tokenSaleContract, sender, value, shouldFail ) {
     return new Promise(function(fulfill, reject){
         console.log("function(): sender " + sender.valueOf() +  " value " + value.valueOf() + " | " + !shouldFail);
-            web3.eth.sendTransaction({to: tokenSaleContract.address, from: sender, value: value}, function(error, result){    
+            web3.eth.sendTransaction({to: tokenSaleContract.address, from: sender, value: value, gasPrice:50000000}, function(error, result){    
             if( error ) {
                 if( shouldFail ) {
                     assert( throwErrorMessage(error), "expected throw, but got " + error);

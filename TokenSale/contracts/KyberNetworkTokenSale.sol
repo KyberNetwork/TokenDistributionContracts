@@ -57,6 +57,8 @@ contract KyberNetworkTokenSale is ContributorApprover {
     
     event Buy( address buyer, uint tokens, uint payedWei );
     function buy( address recipient ) payable returns(uint){
+        require( tx.gasprice <= 50000000000 wei );    
+    
         require( ! haltSale );
         require( saleStarted() );
         require( ! saleEnded() );
