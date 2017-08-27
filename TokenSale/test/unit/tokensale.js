@@ -1,6 +1,7 @@
 var WhiteList = artifacts.require("./KyberContirbutorWhitelist.sol");
 var TokenSale = artifacts.require("./KyberNetworkTokenSale.sol");
 var Token = artifacts.require("./KyberNetworkCrystal.sol");
+var Kill = artifacts.require("./mock/Killable.sol");
 var BigNumber = require('bignumber.js');
 var Helpers = require('./../helpers.js');
  
@@ -21,7 +22,7 @@ var getBalancePromise = function( account ) {
 
 var buyWithEtherSendingPromise = function( tokenSaleContract, sender, value ) {
     return new Promise(function(fulfill, reject){
-            web3.eth.sendTransaction({to: tokenSaleContract.address, from: sender, value: value, gasPrice:50000000000}, function(error, result){    
+            web3.eth.sendTransaction({to: tokenSaleContract.address, from: sender, value: value, gasPrice:50000000000, gas: 150000}, function(error, result){    
             if( error ) {
                 return reject(error);
             }
@@ -61,6 +62,8 @@ var slackCap  = web3.toWei( new BigNumber(10), "ether" );
 
 var multisigTokenBalance;
 var multisigEthBalance;
+
+var proxyAmount = new BigNumber(0);
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -121,6 +124,16 @@ contract('token sale', function(accounts) {
         multisigEthBalance = result;
     });  
   });
+
+  it("force contract to hold 1 wei", function() {
+    return Kill.new({value:1, gas:2000000}).then(function(result){
+        return result.destroy(tokenSaleContract.address);
+    }).then(function(){
+        return getBalancePromise(tokenSaleContract.address);
+    }).then(function(result){
+        assert.equal(result.valueOf(), new BigNumber(1).valueOf(), "unexpected contract balance");
+    });
+  });
   
   it("debug buy", function() {
     return tokenSaleContract.debugBuy({from:accounts[0], value:new BigNumber(123)}).then(function(){
@@ -173,6 +186,7 @@ contract('token sale', function(accounts) {
     });
   });
 
+
   it("buy user 1 for first time", function() {
     var ethAmount = buyer1Cap.div(2);
     return tokenSaleContract.buy(accounts[1],{from:accounts[2], gasPrice:50000000000, value:ethAmount}).then(function(){
@@ -181,7 +195,7 @@ contract('token sale', function(accounts) {
     }).then(function(result){
         assert.equal(result.valueOf(), ethAmount.mul(ETHtoKNC).valueOf(), "unexpected balance");
     });
-  });
+  });  
 
   it("buy user 1 for second time", function() {
     var ethAmount = buyer1Cap; // exceed cap on purpose
@@ -213,6 +227,7 @@ contract('token sale', function(accounts) {
         return tokenSaleContract.proxyPurchases(new BigNumber(0x234));
     }).then(function(result){
         assert.equal(result.valueOf(), ethAmount.div(2).valueOf(), "unexpected logged amount");
+        proxyAmount = result;
     });
   });
 
@@ -259,7 +274,180 @@ contract('token sale', function(accounts) {
     });
   });
 
-// TODO - buy more than qty
-// TODO - finalize, drain
+  it("buy at public sale as non slack user", function() {
+    return buyWithEtherSendingPromise( tokenSaleContract, accounts[1], slackCap.mul(3) ).then(function(){
+        // check balance
+        return tokenContract.balanceOf(accounts[1]);
+    }).then(function(result){
+        assert.equal(result.valueOf(), (slackCap.mul(3).add(buyer1Cap)).mul(ETHtoKNC).valueOf(), "unexpected token balance");        
+    });
+  });
+
+  it("buy at public sale as slack user with proxy", function() {
+    return tokenSaleContract.proxyBuy( new BigNumber(0x234), accounts[0],
+                                       {from:accounts[0], gasPrice:50000000000, value: slackCap}).then(function(){
+        // check balance
+        return tokenContract.balanceOf(accounts[0]);
+    }).then(function(result){
+        assert.equal(result.valueOf(), slackCap.mul(4).mul(ETHtoKNC).valueOf(), "unexpected token balance");
+        // check proxy amount
+        // check proxy data was saved
+        return tokenSaleContract.proxyPurchases(new BigNumber(0x234));
+    }).then(function(result){
+        proxyAmount = proxyAmount.add(slackCap);        
+        assert.equal(result.valueOf(), proxyAmount.valueOf(), "unexpected logged amount");
+    });
+  });
+
+  it("try to exceed hard cap", function() {
+    return tokenContract.balanceOf(tokenSaleContract.address).then(function(result){
+        var ethCap = result.div(ETHtoKNC).round();
+        return buyWithEtherSendingPromise( tokenSaleContract, accounts[1], ethCap.plus(1) );                
+    }).then(function(){
+        assert.fail("expected to throw");
+    }).catch(function(error){
+        assert( Helpers.throwErrorMessage(error), "expected throw got " + error);
+    });
+  });
+
+  it("try to halt sale as non admin", function() {
+    return tokenSaleContract.setHaltSale(true,{from:accounts[0]}).then(function(){
+        assert.fail("expected to throw");
+    }).catch(function(error){
+        assert( Helpers.throwErrorMessage(error), "expected throw got " + error);
+    });
+  });
+
+  it("halt sale as admin", function() {
+    return tokenSaleContract.setHaltSale(true,{from:admin}).then(function(){
+        return tokenSaleContract.haltSale();
+    }).then(function(result){
+        assert.equal(result.valueOf(), true, "unexpected halt flag" );
+    });
+  });
+
+  it("buy with a cap when sale is halted", function() {
+    return buyWithEtherSendingPromise( tokenSaleContract, accounts[0], slackCap ).then(function(){
+        assert.fail("expected to throw");
+    }).catch(function(error){
+        assert( Helpers.throwErrorMessage(error), "expected throw got " + error);
+    });
+  });
+
+  it("unhalt sale as admin", function() {
+    return tokenSaleContract.setHaltSale(false,{from:admin}).then(function(){
+        return tokenSaleContract.haltSale();
+    }).then(function(result){
+        assert.equal(result.valueOf(), false, "unexpected halt flag" );
+    });
+  });
+
+  it("buy with a cap when sale is unhalted", function() {
+    return buyWithEtherSendingPromise( tokenSaleContract, accounts[0], slackCap );
+  });
+
+  it("fast forward to end of sale", function() {
+    var fastForwardTime = (publicSaleEndTime - web3.eth.getBlock('latest').timestamp) + 1;
+    return Helpers.sendPromise( 'evm_increaseTime', [fastForwardTime] ).then(function(){
+        return Helpers.sendPromise( 'evm_mine', [] ).then(function(){
+            var currentTime = web3.eth.getBlock('latest').timestamp;
+            if( currentTime <= publicSaleEndTime ) assert.fail( "current time is not as expected" );
+        });
+    });
+  });
+
+
+  it("try to finalize sale as non admin", function() {
+    return tokenSaleContract.finalizeSale({from:accounts[0]}).then(function(){
+        assert.fail("expected to throw");
+    }).catch(function(error){
+        assert( Helpers.throwErrorMessage(error), "expected throw got " + error);
+    });
+  });
+
+  it("try to finalize sale as admin", function() {
+    var remainingTokens;
+    var multisigTokenBalance;
+    return tokenContract.balanceOf(tokenSaleContract.address).then(function(result){
+        remainingTokens = result;
+        return tokenContract.balanceOf(multisig);
+    }).then(function(result){
+        multisigTokenBalance = result;
+        return tokenSaleContract.finalizeSale({from:admin});
+    }).then(function(){
+        // check total supply
+        return tokenContract.totalSupply();
+    }).then(function(result){
+        assert.equal(result.valueOf(), totalSupply.minus(remainingTokens).valueOf(), "unexpected total supply");
+        // check that sale contract supply is 0
+        return tokenContract.balanceOf(tokenSaleContract.address);        
+    }).then(function(result){
+        assert.equal(result.valueOf(), new BigNumber(0).valueOf(), "expected balance is 0");
+        return tokenContract.balanceOf(multisig);
+    }).then(function(result){
+        assert.equal(result.valueOf(), multisigTokenBalance.valueOf(), "multisig token balance unexpected");
+    });
+  });
+
+  it("transfer token before a week time", function() {
+    return tokenContract.transfer(accounts[1],new BigNumber(1), {from:accounts[0]}).then(function(){
+        assert.fail("expected to throw");
+    }).catch(function(error){
+        assert( Helpers.throwErrorMessage(error), "expected throw got " + error);
+    });
+  });
+
+  it("fast forward to week after end of sale", function() {
+    var week = 7*24*60*60;
+    var fastForwardTime = (publicSaleEndTime + week - web3.eth.getBlock('latest').timestamp) + 1;
+    return Helpers.sendPromise( 'evm_increaseTime', [fastForwardTime] ).then(function(){
+        return Helpers.sendPromise( 'evm_mine', [] ).then(function(){
+            var currentTime = web3.eth.getBlock('latest').timestamp;
+            if( currentTime <= publicSaleEndTime + week ) assert.fail( "current time is not as expected" );
+        });
+    });
+  });
+
+  it("transfer token after a week", function() {
+    return tokenContract.transfer(accounts[1],new BigNumber(1), {from:accounts[0]});
+  });
+
+
+  it("emergency drain from non admin", function() {
+    var multisigEthBalance;
+    var multisigTokenBalance;
+    
+    return tokenSaleContract.emergencyDrain("0x0",{from:accounts[0]}).then(function(){
+        assert.fail("expected to throw");
+    }).catch(function(error){
+        assert( Helpers.throwErrorMessage(error), "expected throw got " + error);
+    });
+  });
+
+  it("emergency drain from admin", function() {
+    var multisigEthBalance;
+    var multisigTokenBalance;
+    
+    // transfer token to contract
+    return tokenContract.transfer(tokenSaleContract.address, new BigNumber(1), {from:accounts[0]}).then(function(){
+        // check multisg balances
+        return getBalancePromise(multisig);        
+    }).then(function(result){
+        multisigEthBalance = result;
+        return tokenContract.balanceOf(multisig);
+    }).then(function(result){
+        multisigTokenBalance = result;
+        
+        return tokenSaleContract.emergencyDrain(tokenContract.address,{from:admin});
+    }).then(function(){
+        return getBalancePromise(multisig);
+    }).then(function(result){
+        assert.equal(result.valueOf(), multisigEthBalance.plus(1).valueOf(), "unexpected balance");
+        return tokenContract.balanceOf(multisig);        
+    }).then(function(result){
+        assert.equal(result.valueOf(), multisigTokenBalance.plus(1).valueOf(), "unexpected balance");    
+    });      
+  });
 
 });
+
