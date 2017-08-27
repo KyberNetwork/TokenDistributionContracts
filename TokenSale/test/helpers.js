@@ -92,3 +92,11 @@ module.exports.sendPromise = function(method, params) {
         });
     });
 };
+
+////////////////////////////////////////////////////////////////////////////////
+
+module.exports.throwErrorMessage = function( error ) {
+    if( error.message.search('invalid opcode') >= 0 ) return true;
+    if( error.message.search('out of gas') >= 0 ) return true;    
+    return false;    
+};
