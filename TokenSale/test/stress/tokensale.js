@@ -76,6 +76,10 @@ var getBalancePromise = function( account ) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+var getBalanceCap = function( balance ) {
+    return BigNumber.min(balance, web3.toWei(1000, "ether") );
+}
+
 var initRandomWhilteList = function( whiteList, listOwner, accounts ) {
     function listInput( user, cap ) {
         this.user = user;
@@ -95,7 +99,7 @@ var initRandomWhilteList = function( whiteList, listOwner, accounts ) {
         }).then(function(balance){
             usersData.increaseETHBalance( accounts[item], balance );
             if( item % 2 ) {
-                cap = Helpers.getRandomBigIntCapped(balance);
+                cap = Helpers.getRandomBigIntCapped(getBalanceCap(balance));
                 usersCap.push( cap );
             }
             else {
@@ -195,7 +199,7 @@ var tryToBuyBeforeStart = function( tokenSale, accounts ) {
             return getBalancePromise( accounts[item] );
         }).then(function(result){
             balance = result;
-            maxValue = balance.div(2).round(); // keep some for gas
+            maxValue = getBalanceCap(balance.div(2).round()); // keep some for gas
         
             if( ! usersCap[ item ].eq(0) ) {
                 if( maxValue.greaterThan(usersCap[ item ]) ) maxValue = usersCap[ item ];  
@@ -239,7 +243,7 @@ var getUserIndex = function( accounts, user ) {
 var tryToBuyInCappedSale = function( tokenSale, accounts, halted ) {
     var getRandValue = function( item, recipient, balance ){
         var recIndex = getUserIndex(accounts, recipient );
-        var maxValue = balance.div(2).round();
+        var maxValue = getBalanceCap(balance.div(2).round());
                 
         if( usersCap[ recIndex ].greaterThan(0) && usersCap[ recIndex ].greaterThan(usersUsedCap[ recIndex ])  ) {
             maxValue = (usersCap[ recIndex ].minus(usersUsedCap[ recIndex ])).mul(1.25).round();                
@@ -371,7 +375,7 @@ var tryToBuyInCappedSale = function( tokenSale, accounts, halted ) {
 var tryToBuyInUncappedSale = function( tokenSale, accounts, halted ) {
     var getRandValue = function( item, recipient, balance ){
         var recIndex = getUserIndex(accounts, recipient );
-        var maxValue = balance.div(2).round();
+        var maxValue = getBalanceCap(balance.div(2).round());
         
         return Helpers.getRandomBigIntCapped(maxValue);
     };
