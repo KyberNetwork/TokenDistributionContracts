@@ -2,7 +2,7 @@ var WhiteList = artifacts.require("./KyberContirbutorWhitelist.sol");
 var TokenSale = artifacts.require("./KyberNetworkTokenSale.sol");
 var Token = artifacts.require("./KyberNetworkCrystal.sol");
 var BigNumber = require('bignumber.js');
-var Helpers = require('./helpers.js');
+var Helpers = require('./../helpers.js');
  
 
 var throwErrorMessage = function( error ) {

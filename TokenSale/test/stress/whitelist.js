@@ -6,6 +6,8 @@ var Helpers = require('./helpers.js');
 var listContract;
 
 
+var slackCap = new BigNumber(1);
+
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -30,7 +32,7 @@ var testListing = function( whiteListContract, user, cap, owner, nonOwner ) {
             // whitelist with non-owner
             return whiteListContract.listAddress(user,new BigNumber(cap)  * 2,{from: nonOwner});
         }).then(function(result){
-            assert.fail("registering from non-owner should fail");            
+            assert.fail("registering from non-owner should fail");
         }).catch(function(err){
             if( ! okScenarioPassed ) {
                 console.log("list address unexpectedly failed");
@@ -153,6 +155,9 @@ var multipleTransferTest = function( whiteListContract, accounts, owner, numTran
         }, Promise.resolve()).then(function(){fulfill(true)});
     });    
 };
+
+////////////////////////////////////////////////////////////////////////////////
+
 
  
 

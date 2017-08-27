@@ -1,6 +1,6 @@
 var Token = artifacts.require("./KyberNetworkCrystal.sol");
 var BigNumber = require('bignumber.js');
-var Helpers = require('./helpers.js');
+var Helpers = require('./../helpers.js');
 
 
 var getUserIndex = function( accounts, user ) {
