@@ -1,4 +1,4 @@
-var WhiteList = artifacts.require("./KyberContirbutorWhitelist.sol");
+var WhiteList = artifacts.require("./KyberContributorWhitelist.sol");
 var BigNumber = require('bignumber.js');
 var Helpers = require('./../helpers.js');
 
@@ -13,7 +13,7 @@ var addresses = [ "0x34133870506af5d0644f41a2ee62cc387b811350",
                   "0x34133870506af5d0644f41a2ee62cc387b811351",
                   "0x34133870506af5d0644f41a2ee62cc387b811352",
                   "0x34133870506af5d0644f41a2ee62cc387b811353" ];
-                  
+
 var caps = [ slackCapCode, new BigNumber(10), new BigNumber(11), new BigNumber(0)];
 
 var owner;
@@ -34,7 +34,7 @@ contract('white list', function(accounts) {
     done();
   });
 
-  
+
   it("deploy contract", function() {
     owner = accounts[2];
     nonOwner = accounts[0];
@@ -47,8 +47,8 @@ contract('white list', function(accounts) {
     return listContract.setSlackUsersCap(slackCapAmount, {from:owner}).then(function(){
         return listContract.slackUsersCap();
     }).then(function(result){
-        assert.equal( result.valueOf(), slackCapAmount.valueOf(), "unexpected slack cap"); 
-    });    
+        assert.equal( result.valueOf(), slackCapAmount.valueOf(), "unexpected slack cap");
+    });
   });
 
   it("set slack cap from non-owner", function() {
@@ -59,10 +59,10 @@ contract('white list', function(accounts) {
         // check that value was not set
         return listContract.slackUsersCap();
     }).then(function(result){
-        assert.equal( result.valueOf(), slackCapAmount.valueOf(), "unexpected slack cap");        
-    });    
+        assert.equal( result.valueOf(), slackCapAmount.valueOf(), "unexpected slack cap");
+    });
   });
-  
+
   it("transfer ownership from non owner", function() {
     return listContract.transferOwnership(accounts[3], {from:nonOwner}).then(function(){
         assert.fail("set cap should fail");
@@ -71,8 +71,8 @@ contract('white list', function(accounts) {
         // check that value was not set
         return listContract.owner();
     }).then(function(result){
-        assert.equal( result.valueOf(), owner.valueOf(), "unexpected owner");        
-    });    
+        assert.equal( result.valueOf(), owner.valueOf(), "unexpected owner");
+    });
   });
 
   it("transfer ownership from owner", function() {
@@ -80,31 +80,31 @@ contract('white list', function(accounts) {
         owner = accounts[3];
         return listContract.owner();
     }).then(function(result){
-        assert.equal( result.valueOf(), owner.valueOf(), "unexpected owner");        
-    });    
+        assert.equal( result.valueOf(), owner.valueOf(), "unexpected owner");
+    });
   });
-    
+
   it("list array", function() {
     return listContract.listAddresses(addresses,caps,{from:owner}).then(function(){
-        return listContract.getCap(addresses[0]);        
+        return listContract.getCap(addresses[0]);
     }).then(function(result){
         assert.equal(result.valueOf(), slackCapAmount.valueOf(), "unexpected cap");
         return listContract.getCap(addresses[1]);
     }).then(function(result){
         assert.equal(result.valueOf(), caps[1].valueOf(), "unexpected cap");
-        return listContract.getCap(addresses[2]);        
+        return listContract.getCap(addresses[2]);
     }).then(function(result){
         assert.equal(result.valueOf(), caps[2].valueOf(), "unexpected cap");
-        return listContract.getCap(addresses[3]);        
+        return listContract.getCap(addresses[3]);
     }).then(function(result){
-        assert.equal(result.valueOf(), caps[3].valueOf(), "unexpected cap");    
+        assert.equal(result.valueOf(), caps[3].valueOf(), "unexpected cap");
     });
   });
 
   it("delist single", function() {
     caps[1] = new BigNumber(0);
     return listContract.listAddress(addresses[1],caps[1],{from:owner}).then(function(){
-        return listContract.getCap(addresses[1]);        
+        return listContract.getCap(addresses[1]);
     }).then(function(result){
         assert.equal(result.valueOf(), caps[1].valueOf(), "unexpected cap");
     });

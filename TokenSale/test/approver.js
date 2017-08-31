@@ -1,9 +1,9 @@
-var WhiteList = artifacts.require("./KyberContirbutorWhitelist.sol");
+var WhiteList = artifacts.require("./KyberContributorWhitelist.sol");
 var TokenSale = artifacts.require("./KyberNetworkTokenSale.sol");
 var MockApprover = artifacts.require("./mock/Approver.sol");
 var BigNumber = require('bignumber.js');
 var Helpers = require('./helpers.js');
- 
+
 
 
 
@@ -42,10 +42,10 @@ var initRandomWhilteList = function( whiteList, listOwner, accounts ) {
             else {
                 usersCap.push( new BigNumber(0) );
             }
-            
+
             usersUsedCap.push( new BigNumber(0) );
         }
-        
+
        return inputs.reduce(function (promise, item) {
         return promise.then(function () {
             return whiteList.listAddress( item.user, item.cap, {from:listOwner});
@@ -53,7 +53,7 @@ var initRandomWhilteList = function( whiteList, listOwner, accounts ) {
         }, Promise.resolve()).then(function(){fulfill(true)});
     });
 };
- 
+
 ////////////////////////////////////////////////////////////////////////////////
 
 var compareCaps = function( tokenSale, accounts ) {
@@ -67,7 +67,7 @@ var compareCaps = function( tokenSale, accounts ) {
         for( var i = 0 ; i < accounts.length ; i++ ) {
             inputs.push( new expectedResult( accounts[i], usersCap[i] ) );
         }
-        
+
        return inputs.reduce(function (promise, item) {
         return promise.then(function () {
             return tokenSale.contributorCap( item.user ).then(function(result){
@@ -75,7 +75,7 @@ var compareCaps = function( tokenSale, accounts ) {
             });
         });
         }, Promise.resolve()).then(function(){fulfill(true)});
-    });    
+    });
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -92,9 +92,9 @@ var testEligable = function( tokenSale, accounts, cappedSale, publicSale ) {
         for( var i = 0 ; i < accounts.length ; i++ ) {
             var amount;
             var randOption = Helpers.getRandomInt(0,3);
-            var remainedCap = (usersCap[i].minus( usersUsedCap[i])).absoluteValue();            
+            var remainedCap = (usersCap[i].minus( usersUsedCap[i])).absoluteValue();
             var result;
-            
+
             if( randOption === 0 ) {
                 amount = Helpers.getRandomBigIntCapped( remainedCap );
             }
@@ -102,24 +102,24 @@ var testEligable = function( tokenSale, accounts, cappedSale, publicSale ) {
                 amount = remainedCap;
             }
             else {
-                amount = Helpers.getRandomBigInt();                
+                amount = Helpers.getRandomBigInt();
             }
-            
+
             if( (! cappedSale ) && ( ! publicSale ) ) {
                 result = new BigNumber( 0 );
             }
             else if( cappedSale ) {
                 if( amount.greaterThan( remainedCap) ) result = remainedCap;
-                else result = amount; 
+                else result = amount;
             }
             else {
                 if( ! usersCap[i].eq(0) ) result = amount;
                 else result = new BigNumber(0);
             }
-            
+
             inputs.push( new inputAndExpectedResult( accounts[i], amount, result ) );
         }
-        
+
        return inputs.reduce(function (promise, item) {
         return promise.then(function () {
             return tokenSale.eligible( item.user, item.amountInWei ).then(function(result){
@@ -129,25 +129,25 @@ var testEligable = function( tokenSale, accounts, cappedSale, publicSale ) {
             });
         });
         }, Promise.resolve()).then(function(){fulfill(true)});
-    });    
+    });
 };
- 
+
 ////////////////////////////////////////////////////////////////////////////////
 
 var testTestAndIncrement = function( accounts, tokenSale, user, amountInWei, expectedResult ){
     return new Promise(function (fulfill, reject){
         return tokenSale.testAndIncrement( user, amountInWei ).then(function(result){
             assert.equal(result.logs.length, 1, "expected a single event");
-            var log = result.logs[0];            
+            var log = result.logs[0];
             assert.equal(log.event, "Result", "unexpected event");
             assert.equal(log.args.x.valueOf(), expectedResult.valueOf(), "unexpected result");
-            
+
             for( var i = 0 ; i < accounts.length ; i++ ) {
                 if( accounts[i] == user ) {
                     usersUsedCap[i] = usersUsedCap[i].add(log.args.x);
                 }
             }
-            
+
             fulfill(true);
         });
     }).catch(function(err){
@@ -163,13 +163,13 @@ var testEligbleInIterations = function( tokenSale, accounts, cappedSale, publicS
         for( var i = 0 ; i < numIterations ; i++ ) {
             inputs.push( 1 );
         }
-        
+
        return inputs.reduce(function (promise, item) {
         return promise.then(function () {
             return testEligable( tokenSale, accounts, cappedSale, publicSale );
         });
         }, Promise.resolve()).then(function(){fulfill(true)});
-    });    
+    });
 };
 
 
@@ -188,21 +188,21 @@ contract('contributor approver', function(accounts) {
   it("mine one block to get current time", function() {
     return Helpers.sendPromise( 'evm_mine', [] );
   });
-  
+
   it("deploy white list", function() {
     return WhiteList.new({from:accounts[2],gas:4000000}).then(function(instance){
         whiteListContract = instance;
         return initRandomWhilteList( whiteListContract, accounts[2], accounts );
     });
   });
-    
+
   it("deploy mock contract", function() {
     var currentTime = web3.eth.getBlock('latest').timestamp;
-  
+
     cappedSaleStartTime = currentTime + 3600; // one hour from now
-    publicSaleStartTime = cappedSaleStartTime  + 3 * 3600; 
-    publicSaleEndTime = publicSaleStartTime + 21 * 3600; 
-  
+    publicSaleStartTime = cappedSaleStartTime  + 3 * 3600;
+    publicSaleEndTime = publicSaleStartTime + 21 * 3600;
+
     return MockApprover.new( whiteListContract.address, // whitelist
                              cappedSaleStartTime, // start capped
                              publicSaleStartTime, // start public
@@ -210,7 +210,7 @@ contract('contributor approver', function(accounts) {
         mockApproverContract = instance;
     });
   });
-  
+
 
   it("before capped sale starts - sanity", function() {
     return mockApproverContract.contributorCap(accounts[0]).then(function(result){
@@ -220,7 +220,7 @@ contract('contributor approver', function(accounts) {
         assert.equal(result.valueOf(), usersCap[1], "unexpected cap");
     });
   });
-  
+
   it("before capped sale starts - eligible sanity", function() {
     var amount = new BigNumber(5);
     return mockApproverContract.eligible(accounts[0], amount ).then(function(result){
@@ -228,7 +228,7 @@ contract('contributor approver', function(accounts) {
         return mockApproverContract.eligible(accounts[1], amount);
     }).then(function(result){
         assert.equal(result.valueOf(), 0, "unexpected cap");
-    });    
+    });
   });
 
   it("before capped sale starts - test and increment sanity", function() {
@@ -238,13 +238,13 @@ contract('contributor approver', function(accounts) {
         return mockApproverContract.testAndIncrement(accounts[1], amount);
     }).then(function(result){
         assert.equal(result.logs[0].args.x.valueOf(), 0, "unexpected cap");
-    });    
+    });
   });
 
   it("before capped sale starts - contributorCap", function() {
     return compareCaps( mockApproverContract, accounts );
   });
-  
+
   it("before capped sale starts - eligible", function() {
     return testEligable( mockApproverContract, accounts, false, false );
   });
@@ -270,7 +270,7 @@ contract('contributor approver', function(accounts) {
         assert.equal(result.valueOf(), usersCap[1], "unexpected cap");
     });
   });
-  
+
   it("in capped sale starts - eligible sanity", function() {
     var amount = new BigNumber(5);
     return mockApproverContract.eligible(accounts[0], amount ).then(function(result){
@@ -282,7 +282,7 @@ contract('contributor approver', function(accounts) {
         return mockApproverContract.eligible(accounts[1], amount);
     }).then(function(result){
         assert.equal(result.valueOf(), usersCap[1].valueOf(), "unexpected cap");
-    });    
+    });
   });
 
   it("in capped sale - test and increment sanity", function() {
@@ -293,24 +293,24 @@ contract('contributor approver', function(accounts) {
     }).then(function(result){
         assert.equal(result.logs[0].args.x.valueOf(), amount.valueOf(), "unexpected cap");
         usersUsedCap[1] = usersUsedCap[1].add(result.logs[0].args.x);
-        
+
         amount = amount.plus(usersCap[1]);
         return mockApproverContract.testAndIncrement(accounts[1], amount);
     }).then(function(result){
         var expectedAmount = usersCap[1].minus(usersUsedCap[1]);
         assert.equal(result.logs[0].args.x.valueOf(), expectedAmount.valueOf(), "unexpected cap");
-        usersUsedCap[1] = usersUsedCap[1].add(result.logs[0].args.x);        
+        usersUsedCap[1] = usersUsedCap[1].add(result.logs[0].args.x);
     });
   });
   // sanity ends
 
-  
+
 
 
   it("in capped sale - contributorCap", function() {
     return compareCaps( mockApproverContract, accounts );
   });
-  
+
   it("in capped sale - eligible", function() {
     return testEligable( mockApproverContract, accounts, true, false );
   });
@@ -358,7 +358,7 @@ contract('contributor approver', function(accounts) {
   it("in public sale - contributorCap", function() {
     return compareCaps( mockApproverContract, accounts );
   });
-  
+
   it("in public sale - eligible", function() {
     return testEligable( mockApproverContract, accounts, false, true );
   });
@@ -389,7 +389,7 @@ contract('contributor approver', function(accounts) {
         });
     });
   });
-  
+
   it("after sale ends - eligible sanity", function() {
     var amount = new BigNumber(5);
     return mockApproverContract.eligible(accounts[0], amount ).then(function(result){
@@ -397,7 +397,7 @@ contract('contributor approver', function(accounts) {
         return mockApproverContract.eligible(accounts[1], amount);
     }).then(function(result){
         assert.equal(result.valueOf(), 0, "unexpected cap");
-    });    
+    });
   });
 
   it("after sale ends - test and increment sanity", function() {
@@ -407,9 +407,9 @@ contract('contributor approver', function(accounts) {
         return mockApproverContract.testAndIncrement(accounts[1], amount);
     }).then(function(result){
         assert.equal(result.logs[0].args.x.valueOf(), 0, "unexpected cap");
-    });    
+    });
   });
-  
+
   it("fast forward one week", function() {
     var fastForwardTime = 60 * 60 * 24 * 7;
     return Helpers.sendPromise( 'evm_increaseTime', [fastForwardTime] ).then(function(){
@@ -424,6 +424,6 @@ contract('contributor approver', function(accounts) {
   it("after public sale - stress test", function() {
     return testEligbleInIterations( mockApproverContract, accounts, false, false, stressTestParam );
   });
-        
+
   // TODO - try to call testAndIncerement directly (and fail)
 });
