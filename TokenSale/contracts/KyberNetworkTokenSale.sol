@@ -2,7 +2,7 @@ pragma solidity ^0.4.13;
 
 import './KyberNetworkCrystal.sol';
 import './ContributorApprover.sol';
-import './KyberContirbutorWhitelist.sol';
+import './KyberContributorWhitelist.sol';
 
 contract KyberNetworkTokenSale is ContributorApprover {
     address             public admin;
@@ -15,7 +15,7 @@ contract KyberNetworkTokenSale is ContributorApprover {
 
     function KyberNetworkTokenSale( address _admin,
                                     address _kyberMultiSigWallet,
-                                    KyberContirbutorWhitelist _whilteListContract,
+                                    KyberContributorWhitelist _whilteListContract,
                                     uint _totalTokenSupply,
                                     uint _premintedTokenSupply,
                                     uint _cappedSaleStartTime,
@@ -49,10 +49,12 @@ contract KyberNetworkTokenSale is ContributorApprover {
     }
 
     event ProxyBuy( bytes32 indexed proxy, address recipient, uint amountInWei );
-    function proxyBuy( bytes32 proxy, address recipient ) payable {
+    function proxyBuy( bytes32 proxy, address recipient ) payable returns(uint){
         uint amount = buy( recipient );
         proxyPurchases[proxy] = proxyPurchases[proxy].add(amount);
         ProxyBuy( proxy, recipient, amount );
+
+        return amount;
     }
 
     event Buy( address buyer, uint tokens, uint payedWei );
