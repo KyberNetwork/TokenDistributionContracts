@@ -105,7 +105,7 @@ contract KyberNetworkTokenSale is ContributorApprover {
 
     // ETH balance is always expected to be 0.
     // but in case something went wrong, we use this function to extract the eth.
-    function emergencyDrain(ERC20 anyToken) {
+    function emergencyDrain(ERC20 anyToken) returns(bool){
         require(msg.sender == admin );
         require( saleEnded() );
 
@@ -116,6 +116,8 @@ contract KyberNetworkTokenSale is ContributorApprover {
         if( anyToken != address(0x0) ) {
             assert( anyToken.transfer(kyberMultiSigWallet, anyToken.balanceOf(this)) );
         }
+
+        return true;
     }
 
     // just to check that funds goes to the right place
