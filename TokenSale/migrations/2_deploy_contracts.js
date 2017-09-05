@@ -1,5 +1,5 @@
 var TokenSale = artifacts.require("./KyberNetworkTokenSale.sol");
-var WhiteList = artifacts.require("./KyberContirbutorWhitelist.sol");
+var WhiteList = artifacts.require("./KyberContributorWhitelist.sol");
 
 
 // Copy & Paste this
@@ -17,20 +17,19 @@ module.exports = function(deployer) {
     var multisig = "0x456";
     var whiteListInstance;
     var totalSupply = web3.toWei( 226000000, "ether");
-    var premintedSupply = totalSupply / 2; 
-    var cappedSaleStart = new Date('Fri, 15 Sep 2017 06:00:00 GMT').getUnixTime(); 
+    var premintedSupply = totalSupply / 2;
+    var cappedSaleStart = new Date('Fri, 15 Sep 2017 06:00:00 GMT').getUnixTime();
     var publicSaleStartTime = new Date('Sat, 16 Sep 2017 06:00:00 GMT').getUnixTime();
     var publicSaleEndTime = new Date('Sun, 17 Sep 2017 06:00:00 GMT').getUnixTime();
 
-    return WhiteList.new().then(function(instance){    
+    return WhiteList.new().then(function(instance){
         whiteListInstance = instance;
-        return whiteListInstance.listAddress("0x789", 1); // list as slack user 
+        return whiteListInstance.listAddress("0x789", 1); // list as slack user
     }).then(function(){
         return TokenSale.new(admin, multisig, whiteListInstance.address, totalSupply,
-                             premintedSupply, cappedSaleStart, publicSaleStartTime, 
+                             premintedSupply, cappedSaleStart, publicSaleStartTime,
                              publicSaleEndTime);
-    }).then(function(result){    
+    }).then(function(result){
         tokenSaleContract = result;
     });
 };
-
