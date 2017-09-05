@@ -55,14 +55,18 @@ contract KyberNetworkCrystal is StandardToken, Ownable {
 
     event Burn(address indexed _burner, uint _value);
 
-    function burn(uint _value) onlyWhenTransferEnabled{
+    function burn(uint _value) onlyWhenTransferEnabled
+        returns (bool){
         balances[msg.sender] = balances[msg.sender].sub(_value);
         totalSupply = totalSupply.sub(_value);
         Burn(msg.sender, _value);
+        Transfer(msg.sender, address(0x0), _value);
+        return true;
     }
 
     // save some gas by making only one contract call
-    function burnFrom(address _from, uint256 _value) onlyWhenTransferEnabled {
+    function burnFrom(address _from, uint256 _value) onlyWhenTransferEnabled
+        returns (bool) {
         assert( transferFrom( _from, msg.sender, _value ) );
         return burn(_value);
     }
