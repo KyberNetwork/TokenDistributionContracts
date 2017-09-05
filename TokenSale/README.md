@@ -3,7 +3,7 @@ In this document, we describe the token sale specification and implementation,
 and give an overview over the smart contracts structure.
 
 ## Informal Specification
-The token sale is open only to registered users. 
+The token sale is open only to registered users.
 Each user has individual cap for the amount of Ether he can contribute.
 In the sale, bounded number of tokens is offered (e.g., there is hard cap for raised ether).
 
@@ -26,7 +26,7 @@ The contract gets as input an instance of the deployed whitelist.
 Upon deployment, preminted tokens are already distributed.
 
 3. On T- 2, we manually verify that preminted tokens were assigned to the correct addresses.
-We also try to transfer 1 company token, to see that it works. 
+We also try to transfer 1 company token, to see that it works.
 Finally, we call `debugBuy` function to manually verify that ether goes to the correct wallet.
 
 3. On T, the sale starts. At this point users can buy tokens according to their individual caps.
@@ -49,7 +49,7 @@ Owner of the contract can list and delist (set cap to 0) users at any point.
 Cap of 1 means the user is a slack user, and their cap is set globally before token sale.
 In practice, we will not make changes in the list after its first initialization, unless issues are discovered.
 This is necessary as we expect > 10k users, and we must start uploading the users before we have a full list.
-For this reason we also have an optimzed version of listing which can take an array as input. 
+For this reason we also have an optimzed version of listing which can take an array as input.
 
 Since we are nice, we will also destory the contract after token sale to save disk space for network node.
 
@@ -61,12 +61,12 @@ To optimize gas cost, an auxiliary `burnFrom` function was also implemented.
 This function allows sender to burn tokens that were approved by a spender.
 
 2. It is impossible to transfer tokens during the period of the token sale.
-To be more precise, only the token sale contract is allowed to transfer tokens during the token sale. 
+To be more precise, only the token sale contract is allowed to transfer tokens during the token sale.
 
 
 #### Token sale
 The token sale contract has 3 roles:
-1. Distributing preminted tokens. Implemented in `KyberContirbutorWhitelist.sol`.
+1. Sending preminted tokens and incoming ETH to kyber network multisig wallet. Implemented in `KyberNetworkTokenSale.sol`.
 2. Verifying that user is listed and that cap is not exceeded. Implemented in `ContributorApprover.sol`.
 3. Distributing tokens to buyers. Implemented in `KyberNetworkTokenSale.sol`.
 
@@ -80,6 +80,6 @@ We notified zeppling team, and a [PR](https://github.com/OpenZeppelin/zeppelin-s
 
 In our code base we decided to include a fix for both issues, and we expect the auditor to review these changes.
 Changes are denoted with `KYBER-NOTE!` comment in `ERC20.sol`, `ERC20Basic.sol` and `StandardToken.sol` files.
-  
+
 # Testrpc commandline
 testrpc --account="0xa7bd56770b690a592f57a0b9d17163b07b5ac5216163bbd929d3923e5ac05c80,400000000000000000000000" --account="0xa7bd56770b690a592f57a0b9d17163b07b5ac5216163bbd929d3923e5ac05c81,400000000000000000000000" --account="0xa7bd56770b690a592f57a0b9d17163b07b5ac5216163bbd929d3923e5ac05c82,400000000000000000000000" --account="0xa7bd56770b690a592f57a0b9d17163b07b5ac5216163bbd929d3923e5ac05c83,400000000000000000000000" --account="0xa7bd56770b690a592f57a0b9d17163b07b5ac5216163bbd929d3923e5ac05c84,400000000000000000000000" --account="0xa7bd56770b690a592f57a0b9d17163b07b5ac5216163bbd929d3923e5ac05c85,400000000000000000000000" --account="0xa7bd56770b690a592f57a0b9d17163b07b5ac5216163bbd929d3923e5ac05c86,400000000000000000000000" --account="0xa7bd56770b690a592f57a0b9d17163b07b5ac5216163bbd929d3923e5ac05c87,400000000000000000000000" --account="0xa7bd56770b690a592f57a0b9d17163b07b5ac5216163bbd929d3923e5ac05c88,400000000000000000000000" --account="0xa7bd56770b690a592f57a0b9d17163b07b5ac5216163bbd929d3923e5ac05c89,400000000000000000000000" --account="0xa7bd56770b690a592f57a0b9d17163b07b5ac5216163bbd929d3923e5ac05c8a,400000000000000000000000"
