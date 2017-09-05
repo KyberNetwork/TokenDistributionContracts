@@ -19,7 +19,7 @@ contract KyberContributorWhitelist is Ownable {
         ListAddress( _user, _cap, now );
     }
 
-    // an optimasition in case of network congestion
+    // an optimization in case of network congestion
     function listAddresses( address[] _users, uint[] _cap ) onlyOwner {
         require(_users.length == _cap.length );
         for( uint i = 0 ; i < _users.length ; i++ ) {

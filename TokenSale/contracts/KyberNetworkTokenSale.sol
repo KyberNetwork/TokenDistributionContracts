@@ -95,7 +95,7 @@ contract KyberNetworkTokenSale is ContributorApprover {
     // function is callable by everyone
     function finalizeSale() {
         require( saleEnded() );
-        require(msg.sender == admin );
+        require( msg.sender == admin );
 
         // burn remaining tokens
         token.burn(token.balanceOf(this));
@@ -106,7 +106,7 @@ contract KyberNetworkTokenSale is ContributorApprover {
     // ETH balance is always expected to be 0.
     // but in case something went wrong, we use this function to extract the eth.
     function emergencyDrain(ERC20 anyToken) returns(bool){
-        require(msg.sender == admin );
+        require( msg.sender == admin );
         require( saleEnded() );
 
         if( this.balance > 0 ) {
