@@ -1,4 +1,4 @@
-pragma solidity ^0.4.11;
+pragma solidity ^0.4.13;
 
 import './zeppelin/ownership/Ownable.sol';
 import './KyberContributorWhitelist.sol';
