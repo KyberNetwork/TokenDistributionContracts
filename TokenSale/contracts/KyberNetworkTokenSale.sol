@@ -48,7 +48,7 @@ contract KyberNetworkTokenSale is ContributorApprover {
         buy( msg.sender );
     }
 
-    event ProxyBuy( bytes32 indexed proxy, address recipient, uint amountInWei );
+    event ProxyBuy( bytes32 indexed _proxy, address _recipient, uint _amountInWei );
     function proxyBuy( bytes32 proxy, address recipient ) payable returns(uint){
         uint amount = buy( recipient );
         proxyPurchases[proxy] = proxyPurchases[proxy].add(amount);
@@ -57,7 +57,7 @@ contract KyberNetworkTokenSale is ContributorApprover {
         return amount;
     }
 
-    event Buy( address buyer, uint tokens, uint payedWei );
+    event Buy( address _buyer, uint _tokens, uint _payedWei );
     function buy( address recipient ) payable returns(uint){
         require( tx.gasprice <= 50000000000 wei );
 
