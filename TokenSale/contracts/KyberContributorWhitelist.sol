@@ -3,7 +3,7 @@ pragma solidity ^0.4.13;
 import './zeppelin/ownership/Ownable.sol';
 
 contract KyberContributorWhitelist is Ownable {
-    // the value of 7 is just a stub.
+    // cap is in wei. The value of 7 is just a stub.
     // after kyc registration ends, we change it to the actual value with setSlackUsersCap
     uint public slackUsersCap = 7;
     mapping(address=>uint) public addressCap;
